@@ -112,6 +112,7 @@ int main(int argc, char *argv[], char *envp[])
 	CURLcode res;
 	static char url[1000];
 	int option;
+	char *filename;
 	static const struct option options[] = {
 		{ "email", 1, NULL, 'e' },
 		{ "password", 1, NULL, 'p' },
@@ -140,6 +141,7 @@ int main(int argc, char *argv[], char *envp[])
 			goto exit;
 		}
 	}
+	filename = argv[optind];
 
 	if ((!email) || (!password)) {
 		display_help();
