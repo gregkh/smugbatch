@@ -40,10 +40,8 @@ static size_t parse_login(void *buffer, size_t size, size_t nmemb, void *userp)
 
 	session_id = NULL;
 
-	if ((!buffer) || (!size)) {
-		printf("1\n");
+	if ((!buffer) || (!buffer_size))
 		goto exit;
-	}
 
 	/* we aren't supposed to get a \0 terminated string, so make sure */
 	temp = buffer;
@@ -74,6 +72,28 @@ static size_t parse_login(void *buffer, size_t size, size_t nmemb, void *userp)
 exit:
 	if (!session_id)
 		printf("SessionID not found!");
+	return buffer_size;
+}
+
+static size_t parse_logout(void *buffer, size_t size, size_t nmemb, void *userp)
+{
+	size_t buffer_size = size * nmemb;
+	char *temp;
+
+	session_id = NULL;
+
+	if ((!buffer) || (!buffer_size)) {
+		printf("1\n");
+		goto exit;
+	}
+
+	/* we aren't supposed to get a \0 terminated string, so make sure */
+	temp = buffer;
+	temp[buffer_size-1] = '\0';
+
+	printf("%s: buffer = '%s'\n", __func__, temp);
+
+exit:
 	return buffer_size;
 }
 
@@ -164,6 +184,22 @@ int main(int argc, char *argv[], char *envp[])
 		printf("error(%d) trying to login\n", res);
 		goto exit;
 	}
+
+	if (!session_id) {
+		printf("session_id was not found, exiting\n");
+		goto exit;
+	}
+
+	sprintf(url, smugmug_logout_url, session_id, api_key);
+	printf("url = %s\n", url);
+	curl_easy_setopt(curl, CURLOPT_URL, url);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, parse_logout);
+	res = curl_easy_perform(curl);
+	if (res) {
+		printf("error(%d) trying to logout\n", res);
+		goto exit;
+	}
+
 
 exit:
 	if (curl)
