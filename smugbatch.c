@@ -1,12 +1,29 @@
+/*
+ * Copyright (C) 2008 Greg Kroah-Hartman <greg@kroah.com>
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <getopt.h>
 #include <curl/curl.h>
 
-static char *password = "";
-static char *email = "";
 static char *api_key = "ABW1oenNznek2rD4AIiFn7OhkEkmzEIb";
+static char *password;
+static char *email;
 static char *session_id;
 
 static char *smugmug_album_list_url = "https://api.smugmug.com/hack/rest/1.1.1/?method=smugmug.albums.get&SessionID=%s&APIKey=%s";
@@ -14,7 +31,7 @@ static char *smugmug_login_url = "https://api.smugmug.com/hack/rest/1.1.1/?metho
 static char *smugmug_logout_url = "https://api.smugmug.com/hack/rest/1.1.1/?method=smugmug.logout&SessionID=%s&APIKey=%s";
 
 
-size_t parse_login(void *buffer, size_t size, size_t nmemb, void *userp)
+static size_t parse_login(void *buffer, size_t size, size_t nmemb, void *userp)
 {
 	static char *session_id_string = "<SessionID>";
 	char *location;
@@ -56,11 +73,50 @@ exit:
 }
 
 
-int main(void)
+static void display_help(void)
 {
-	CURL *curl;
+	printf("help goes here...\n");
+}
+
+int main(int argc, char *argv[], char *envp[])
+{
+	CURL *curl = NULL;
 	CURLcode res;
 	static char url[1000];
+	int option;
+	static const struct option options[] = {
+		{ "email", 1, NULL, 'e' },
+		{ "password", 1, NULL, 'p' },
+		{ "help", 0, NULL, 'h' },
+		{ }
+	};
+
+	while (1) {
+		option = getopt_long(argc, argv, "e:p:h", options, NULL);
+		if (option == -1)
+			break;
+		switch (option) {
+		case 'e':
+			email = strdup(optarg);
+			printf("email = %s\n", email);
+			break;
+		case 'p':
+			password = strdup(optarg);
+			printf("password = %s\n", password);
+			break;
+		case 'h':
+			display_help();
+			goto exit;
+		default:
+			display_help();
+			goto exit;
+		}
+	}
+
+	if ((!email) || (!password)) {
+		display_help();
+		goto exit;
+	}
 
 	sprintf(url, smugmug_login_url, email, password, api_key);
 	printf("url = %s\n", url);
@@ -105,7 +161,14 @@ int main(void)
 	}
 
 exit:
-	curl_easy_cleanup(curl);
+	if (curl)
+		curl_easy_cleanup(curl);
+	if (email)
+		free(email);
+	if (password)
+		free(password);
+	if (session_id)
+		free(session_id);
 
 	return 0;
 }
