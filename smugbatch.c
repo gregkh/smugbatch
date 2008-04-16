@@ -156,7 +156,7 @@ int main(int argc, char *argv[], char *envp[])
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, parse_login);
 	res = curl_easy_perform(curl);
 	if (res) {
-		printf("error(%d) trying to login, res\n");
+		printf("error(%d) trying to login\n", res);
 		goto exit;
 	}
 
