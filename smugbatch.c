@@ -34,6 +34,7 @@ static char *smugmug_logout_url = "https://api.smugmug.com/hack/rest/1.1.1/?meth
 static size_t parse_login(void *buffer, size_t size, size_t nmemb, void *userp)
 {
 	static char *session_id_string = "<SessionID>";
+	size_t buffer_size = size * nmemb;
 	char *location;
 	char *temp;
 
@@ -43,6 +44,10 @@ static size_t parse_login(void *buffer, size_t size, size_t nmemb, void *userp)
 		printf("1\n");
 		goto exit;
 	}
+
+	/* we aren't supposed to get a \0 terminated string, so make sure */
+	temp = buffer;
+	temp[buffer_size-1] = '\0';
 
 	/* all we care about is <SessionID> */
 //	printf("buffer = '%s'\nsession_id_string='%s'\n", buffer, session_id_string);
@@ -69,7 +74,7 @@ static size_t parse_login(void *buffer, size_t size, size_t nmemb, void *userp)
 exit:
 	if (!session_id)
 		printf("SessionID not found!");
-	return size;
+	return buffer_size;
 }
 
 
