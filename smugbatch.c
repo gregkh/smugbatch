@@ -85,8 +85,6 @@ static size_t parse_logout(void *buffer, size_t size, size_t nmemb, void *userp)
 	size_t buffer_size = size * nmemb;
 	char *temp;
 
-	session_id = NULL;
-
 	if ((!buffer) || (!buffer_size)) {
 		printf("1\n");
 		goto exit;
