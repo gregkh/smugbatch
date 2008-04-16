@@ -195,6 +195,18 @@ int main(int argc, char *argv[], char *envp[])
 		goto exit;
 	}
 
+	/* Get list of albums for this user */
+	sprintf(url, smugmug_album_list_url, session_id, api_key);
+	printf("url = %s\n", url);
+	curl_easy_setopt(curl, CURLOPT_URL, url);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, parse_logout);
+	res = curl_easy_perform(curl);
+	if (res) {
+		printf("error(%d) trying to read list of albums\n", res);
+		goto exit;
+	}
+
+	/* logout */
 	sprintf(url, smugmug_logout_url, session_id, api_key);
 	printf("url = %s\n", url);
 	curl_easy_setopt(curl, CURLOPT_URL, url);
