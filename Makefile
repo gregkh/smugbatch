@@ -1,31 +1,79 @@
-# What to call the final executable
-TARGET = smugbatch
+#
+# Copyright (C) 2006 Greg Kroah-Hartman <greg@kroah.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
+#
+PROGRAM = smugbatch
 
-# Which object files that the executable consists of
-OBJS= smugbatch.o
+SMUG_OBJS = smugbatch.o
 
-# What compiler to use
-CC = gcc
 
-# Compiler flags, -g for debug, -c to make an object file
-CFLAGS = -c -g
+CROSS_COMPILE ?=
+CC = $(CROSS_COMPILE)gcc
+LD = $(CROSS_COMPILE)gcc
+AR = $(CROSS_COMPILE)ar
 
-# This should point to a directory that holds libcurl, if it isn't
-# in the system's standard lib dir
-# We also set a -L to include the directory where we have the openssl
-# libraries
-#LDFLAGS = -L/home/dast/lib -L/usr/local/ssl/lib
+CFLAGS		+= -g -Wall -pipe -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64
+
+WARNINGS	= -Wstrict-prototypes -Wsign-compare -Wshadow \
+		  -Wchar-subscripts -Wmissing-declarations -Wnested-externs \
+		  -Wpointer-arith -Wcast-align -Wsign-compare -Wmissing-prototypes
+CFLAGS		+= $(WARNINGS)
+LDFLAGS		+= -Wl,-warn-common,--as-needed
+
+
+ifeq ($(strip $(V)),)
+	E = @echo
+	Q = @
+else
+	E = @\#
+	Q =
+endif
+export E Q
+
 
 # We need -lcurl for the curl stuff
 # We need -lsocket and -lnsl when on Solaris
 # We need -lssl and -lcrypto when using libcurl with SSL support
 # We need -lpthread for the pthread example
-LIBS = -lcurl -lnsl -lssl -lcrypto
+LIB_OBJS = -lcurl -lnsl -lssl -lcrypto
 
-# Link the target with all objects and libraries
-$(TARGET) : $(OBJS)
-	$(CC)  -o $(TARGET) $(OBJS) $(LDFLAGS) $(LIBS)
+# "Static Pattern Rule" to build all programs
+$(PROGRAM): %: $(HEADERS) $(GEN_HEADERS) %.o
+	$(E) "  LD      " $@
+	$(Q) $(LD) $(LDFLAGS) $@.o -o $@ $(LIB_OBJS)
 
-# Compile the source files into object files
-smugbatch.o : smugbatch.c
-	$(CC) $(CFLAGS) $<
+
+# build the objects
+%.o: %.c $(HEADERS) $(GEN_HEADERS)
+	$(E) "  CC      " $@
+	$(Q) $(CC) -c $(CFLAGS) $< -o $@
+
+
+
+
+
+clean:
+	$(E) "  CLEAN   "
+	$(Q) - find . -type f -name '*.orig' -print0 | xargs -0r rm -f
+	$(Q) - find . -type f -name '*.rej' -print0 | xargs -0r rm -f
+	$(Q) - find . -type f -name '*~' -print0 | xargs -0r rm -f
+	$(Q) - find . -type f -name '*.[oas]' -print0 | xargs -0r rm -f
+	$(Q) - find . -type f -name "*.gcno" -print0 | xargs -0r rm -f
+	$(Q) - find . -type f -name "*.gcda" -print0 | xargs -0r rm -f
+	$(Q) - find . -type f -name "*.gcov" -print0 | xargs -0r rm -f
+	$(Q) - rm -f core $(PROGRAM)
+.PHONY: clean
+
