@@ -21,10 +21,15 @@
 #include <getopt.h>
 #include <curl/curl.h>
 
+#define VERSION	"001"
+
 static char *api_key = "ABW1oenNznek2rD4AIiFn7OhkEkmzEIb";
+static char *user_agent = "smugbatch/"VERSION" (greg@kroah.com)";
+
 static char *password;
 static char *email;
 static char *session_id;
+
 
 static char *smugmug_album_list_url = "https://api.smugmug.com/hack/rest/1.1.1/?method=smugmug.albums.get&SessionID=%s&APIKey=%s";
 static char *smugmug_login_url = "https://api.smugmug.com/hack/rest/1.1.1/?method=smugmug.login.withPassword&EmailAddress=%s&Password=%s&APIKey=%s";
@@ -151,6 +156,8 @@ int main(int argc, char *argv[], char *envp[])
 		printf("Can not init CURL!\n");
 		return 1;
 	}
+
+	curl_easy_setopt(curl, CURLOPT_USERAGENT, user_agent);
 
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 
