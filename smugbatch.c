@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <getopt.h>
+#include <errno.h>
 #include <curl/curl.h>
 #include "smugbatch_version.h"
 
@@ -31,47 +32,70 @@ static char *password;
 static char *email;
 static char *session_id;
 
+static char *session_id_tag = "Session id";
 
-static char *smugmug_album_list_url = "https://api.smugmug.com/hack/rest/1.1.1/?method=smugmug.albums.get&SessionID=%s&APIKey=%s";
-static char *smugmug_login_url = "https://api.smugmug.com/hack/rest/1.1.1/?method=smugmug.login.withPassword&EmailAddress=%s&Password=%s&APIKey=%s";
-static char *smugmug_logout_url = "https://api.smugmug.com/hack/rest/1.1.1/?method=smugmug.logout&SessionID=%s&APIKey=%s";
+static char *smugmug_album_list_url = "https://api.smugmug.com/hack/rest/1.2.0/?method=smugmug.albums.get&SessionID=%s&APIKey=%s";
+static char *smugmug_login_url = "https://api.smugmug.com/hack/rest/1.2.0/?method=smugmug.login.withPassword&EmailAddress=%s&Password=%s&APIKey=%s";
+static char *smugmug_logout_url = "https://api.smugmug.com/hack/rest/1.2.0/?method=smugmug.logout&SessionID=%s&APIKey=%s";
 
 
-static size_t parse_login(void *buffer, size_t size, size_t nmemb, void *userp)
+static char *find_value(const char *haystack, const char *needle,
+			char **new_pos)
 {
-	static char *session_id_string = "<SessionID>";
-	size_t buffer_size = size * nmemb;
 	char *location;
 	char *temp;
+	char *value;
 
-	session_id = NULL;
-
-	if ((!buffer) || (!buffer_size))
-		goto exit;
-
-	/* we aren't supposed to get a \0 terminated string, so make sure */
-	temp = buffer;
-	temp[buffer_size-1] = '\0';
-
-	/* all we care about is <SessionID> */
-//	printf("buffer = '%s'\nsession_id_string='%s'\n", buffer, session_id_string);
-	location = strstr(buffer, session_id_string);
+	location = strstr(haystack, needle);
 	if (!location)
-		goto exit;
+		return NULL;
 
-	location += strlen(session_id_string);
-	session_id = malloc(1000);
-	if (!session_id)
-		goto exit;
+	value = malloc(1000);
+	if (!value)
+		return NULL;
 
-	temp = session_id;
-
-	while (*location != '<') {
+	location += strlen(needle);
+	temp = value;
+	++location;	/* '=' */
+	++location;	/* '"' */
+	while (*location != '"') {
 		*temp = *location;
 		++temp;
 		++location;
 	}
 	*temp = '\0';
+	if (new_pos)
+		*new_pos = location;
+	return value;
+}
+
+static int sanitize_buffer(char *buffer, size_t size, size_t nmemb)
+{
+	size_t buffer_size = size * nmemb;
+	char *temp;
+
+	if ((!buffer) || (!buffer_size))
+		return -EINVAL;
+
+	/* we aren't supposed to get a \0 terminated string, so make sure */
+	temp = buffer;
+	temp[buffer_size-1] = '\0';
+	return 0;
+}
+
+static size_t parse_login(void *buffer, size_t size, size_t nmemb, void *userp)
+{
+	size_t buffer_size = size * nmemb;
+	char *temp = buffer;
+
+	session_id = NULL;
+
+	if (sanitize_buffer(buffer, size, nmemb))
+		goto exit;
+
+	/* all we care about is <SessionID> */
+	printf("buffer = '%s'\n", temp);
+	session_id = find_value(buffer, session_id_tag, NULL);
 
 	printf("session_id = %s\n", session_id);
 
@@ -84,16 +108,10 @@ exit:
 static size_t parse_logout(void *buffer, size_t size, size_t nmemb, void *userp)
 {
 	size_t buffer_size = size * nmemb;
-	char *temp;
+	char *temp = buffer;
 
-	if ((!buffer) || (!buffer_size)) {
-		printf("1\n");
+	if (sanitize_buffer(buffer, size, nmemb))
 		goto exit;
-	}
-
-	/* we aren't supposed to get a \0 terminated string, so make sure */
-	temp = buffer;
-	temp[buffer_size-1] = '\0';
 
 	printf("%s: buffer = '%s'\n", __func__, temp);
 
