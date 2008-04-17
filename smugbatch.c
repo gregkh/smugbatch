@@ -23,6 +23,7 @@
 #include <errno.h>
 #include <curl/curl.h>
 #include "list.h"
+#include "md5.h"
 #include "smugbatch_version.h"
 
 
@@ -54,7 +55,40 @@ struct album {
 	char *title;
 };
 
+struct filename {
+	struct list_head entry;
+	char *filename;
+	char md5[16];
+};
+
 static LIST_HEAD(album_list);
+static LIST_HEAD(filename_list);
+static int num_files_to_transfer;
+
+static void free_album_list(void)
+{
+	struct album *album;
+	struct album *temp;
+
+	list_for_each_entry_safe(album, temp, &album_list, entry) {
+		dbg("cleaning up album %s\n", album->title);
+		free(album->id);
+		free(album->key);
+		free(album->title);
+		free(album);
+	}
+}
+
+static void free_filename_list(void)
+{
+	struct filename *filename;
+	struct filename *temp;
+
+	list_for_each_entry_safe(filename, temp, &filename_list, entry) {
+		dbg("cleaning up filename %s\n", filename->filename);
+		free(filename);
+	}
+}
 
 static char *find_value(const char *haystack, const char *needle,
 			char **new_pos)
@@ -172,6 +206,56 @@ exit:
 	return buffer_size;
 }
 
+static unsigned char md5_data[100];
+
+/* from coreutils */
+static inline void *ptr_align(void const *ptr, size_t alignment)
+{
+	char const *p0 = ptr;
+	char const *p1 = p0 + alignment - 1;
+	return (void *) (p1 - (size_t) p1 % alignment);
+}
+
+static int generate_md5(void)
+{
+	struct filename *filename;
+	FILE *fp;
+	int err;
+	unsigned char *md5 = ptr_align(md5_data, 4);
+	char md5_string[64];
+
+	if (!num_files_to_transfer)
+		return 0;
+
+	/* let's generate the md5 of the files we are going to upload */
+	list_for_each_entry(filename, &filename_list, entry) {
+		dbg("calculating md5 of %s\n", filename->filename);
+		fp = fopen(filename->filename, "rb");
+		if (!fp) {
+			printf("Can not open %s, exiting\n",
+			       filename->filename);
+			return -EINVAL;
+		}
+		err = md5_stream(fp, &md5[0]);
+		if (err) {
+			printf("error generating md5 for %s, exiting\n",
+			       filename->filename);
+			return -err;
+		}
+		memcpy(filename->md5, md5, 16);
+		sprintf(md5_string,
+			"%.2x%.2x%.2x%.2x%.2x%.2x%.2x%.2x"
+			"%.2x%.2x%.2x%.2x%.2x%.2x%.2x%.2x",
+			md5[0], md5[1], md5[2], md5[3], md5[4], md5[5],
+			md5[6], md5[7], md5[8], md5[9], md5[10], md5[11],
+			md5[12], md5[13], md5[14], md5[15]);
+		dbg("md5 of %s is %s\n", filename->filename, md5_string);
+		fclose(fp);
+	}
+	return 0;
+}
+
+
 
 static void display_help(void)
 {
@@ -180,11 +264,6 @@ static void display_help(void)
 
 int main(int argc, char *argv[], char *envp[])
 {
-	CURL *curl = NULL;
-	CURLcode res;
-	static char url[1000];
-	int option;
-	char *filename;
 	static const struct option options[] = {
 		{ "debug", 0, NULL, 'd' },
 		{ "email", 1, NULL, 'e' },
@@ -192,6 +271,12 @@ int main(int argc, char *argv[], char *envp[])
 		{ "help", 0, NULL, 'h' },
 		{ }
 	};
+	CURL *curl = NULL;
+	CURLcode res;
+	static char url[1000];
+	int option;
+	int i;
+	struct filename *filename;
 
 	while (1) {
 		option = getopt_long(argc, argv, "de:p:h", options, NULL);
@@ -217,7 +302,17 @@ int main(int argc, char *argv[], char *envp[])
 			goto exit;
 		}
 	}
-	filename = argv[optind];
+
+	/* build up a list of all filenames to be used here */
+	for (i = optind; i < argc; ++i) {
+		filename = malloc(sizeof(*filename));
+		if (!filename)
+			goto exit;
+		filename->filename = argv[i];
+		dbg("adding filename '%s'\n", argv[i]);
+		list_add_tail(&filename->entry, &filename_list);
+		++num_files_to_transfer;
+	}
 
 	if ((!email) || (!password)) {
 		display_help();
@@ -237,30 +332,11 @@ int main(int argc, char *argv[], char *envp[])
 
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 
-	//#ifdef SKIP_PEER_VERIFICATION
-	/*
-	* If you want to connect to a site who isn't using a certificate that is
-	* signed by one of the certs in the CA bundle you have, you can skip the
-	* verification of the server's certificate. This makes the connection
-	* A LOT LESS SECURE.
-	*
-	* If you have a CA cert for the server stored someplace else than in the
-	* default bundle, then the CURLOPT_CAPATH option might come handy for
-	* you.
-	*/
+	/* some ssl sanity checks on the connection we are making */
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
-	//#endif
-
-	//#ifdef SKIP_HOSTNAME_VERFICATION
-	/*
-	* If the site you're connecting to uses a different host name that what
-	* they have mentioned in their server certificate's commonName (or
-	* subjectAltName) fields, libcurl will refuse to connect. You can skip
-	* this check, but this will make the connection less secure.
-	*/
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
-	//#endif
 
+	/* log into smugmug */
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, parse_login);
 	res = curl_easy_perform(curl);
 	if (res) {
@@ -284,17 +360,27 @@ int main(int argc, char *argv[], char *envp[])
 		goto exit;
 	}
 
+	if (generate_md5())
+		goto exit;
+
 	{
 		struct album *album;
-		printf("Availble albums:\nAlbum ID\tAlbum Name\n");
+		printf("availble albums:\nalbum id\talbum name\n");
 		list_for_each_entry(album, &album_list, entry) {
 			printf("%s\t\t%s\n", album->id, album->title);
 			}
-		printf("\nWhich Album ID to upload to?");
+		printf("\nwhich album id to upload to?\n");
 
 	}
 
-	/* logout */
+	{
+		printf("%d files to tranfer:\n", num_files_to_transfer);
+		list_for_each_entry(filename, &filename_list, entry) {
+			printf("%s\n", filename->filename);
+			}
+
+	}
+/* logout */
 	sprintf(url, smugmug_logout_url, session_id, api_key);
 	dbg("url = %s\n", url);
 	curl_easy_setopt(curl, CURLOPT_URL, url);
@@ -315,6 +401,8 @@ exit:
 		free(password);
 	if (session_id)
 		free(session_id);
+	free_album_list();
+	free_filename_list();
 
 	return 0;
 }
