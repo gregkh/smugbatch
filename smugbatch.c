@@ -20,11 +20,12 @@
 #include <string.h>
 #include <getopt.h>
 #include <curl/curl.h>
+#include "smugbatch_version.h"
 
 #define VERSION	"001"
 
 static char *api_key = "ABW1oenNznek2rD4AIiFn7OhkEkmzEIb";
-static char *user_agent = "smugbatch/"VERSION" (greg@kroah.com)";
+static char *user_agent = "smugbatch/"SMUGBATCH_VERSION" (greg@kroah.com)";
 
 static char *password;
 static char *email;
