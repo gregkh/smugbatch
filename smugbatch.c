@@ -17,10 +17,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stddef.h>
 #include <string.h>
 #include <getopt.h>
 #include <errno.h>
 #include <curl/curl.h>
+#include "list.h"
 #include "smugbatch_version.h"
 
 #define VERSION	"001"
@@ -38,6 +40,14 @@ static char *smugmug_album_list_url = "https://api.smugmug.com/hack/rest/1.2.0/?
 static char *smugmug_login_url = "https://api.smugmug.com/hack/rest/1.2.0/?method=smugmug.login.withPassword&EmailAddress=%s&Password=%s&APIKey=%s";
 static char *smugmug_logout_url = "https://api.smugmug.com/hack/rest/1.2.0/?method=smugmug.logout&SessionID=%s&APIKey=%s";
 
+struct album {
+	struct list_head entry;
+	char *id;
+	char *key;
+	char *title;
+};
+
+static LIST_HEAD(album_list);
 
 static char *find_value(const char *haystack, const char *needle,
 			char **new_pos)
@@ -104,6 +114,43 @@ exit:
 		printf("SessionID not found!");
 	return buffer_size;
 }
+
+static size_t parse_albums(void *buffer, size_t size, size_t nmemb, void *userp)
+{
+	size_t buffer_size = size * nmemb;
+	char *temp = buffer;
+	struct album *album;
+	char *id;
+	char *key;
+	char *title;
+
+	if (sanitize_buffer(buffer, size, nmemb))
+		goto exit;
+
+	printf("%s: buffer = '%s'\n", __func__, temp);
+
+	while (1) {
+		id = find_value(temp, "Album id", &temp);
+		if (!id)
+			break;
+		key = find_value(temp, "Key", &temp);
+		if (!key)
+			break;
+		title = find_value(temp, "Title", &temp);
+		if (!title)
+			break;
+		printf("%s: %s: %s\n", id, key, title);
+		album = malloc(sizeof(*album));
+		album->id = id;
+		album->key = key;
+		album->title = title;
+		list_add_tail(&album->entry, &album_list);
+	}
+
+exit:
+	return buffer_size;
+}
+
 
 static size_t parse_logout(void *buffer, size_t size, size_t nmemb, void *userp)
 {
@@ -220,11 +267,18 @@ int main(int argc, char *argv[], char *envp[])
 	sprintf(url, smugmug_album_list_url, session_id, api_key);
 	printf("url = %s\n", url);
 	curl_easy_setopt(curl, CURLOPT_URL, url);
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, parse_logout);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, parse_albums);
 	res = curl_easy_perform(curl);
 	if (res) {
 		printf("error(%d) trying to read list of albums\n", res);
 		goto exit;
+	}
+
+	{
+		struct album *album;
+		list_for_each_entry(album, &album_list, entry) {
+			printf("%s: %s: %s\n", album->id, album->key, album->title);
+			}
 	}
 
 	/* logout */
