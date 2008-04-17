@@ -21,6 +21,9 @@
 #include <string.h>
 #include <getopt.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
 #include <curl/curl.h>
 #include "list.h"
 #include "md5.h"
@@ -47,6 +50,7 @@ static char *session_id_tag = "Session id";
 static char *smugmug_album_list_url = "https://api.smugmug.com/hack/rest/1.2.0/?method=smugmug.albums.get&SessionID=%s&APIKey=%s";
 static char *smugmug_login_url = "https://api.smugmug.com/hack/rest/1.2.0/?method=smugmug.login.withPassword&EmailAddress=%s&Password=%s&APIKey=%s";
 static char *smugmug_logout_url = "https://api.smugmug.com/hack/rest/1.2.0/?method=smugmug.logout&SessionID=%s&APIKey=%s";
+static char *smugmug_upload_url = "http://upload.smugmug.com/%s";
 
 struct album {
 	struct list_head entry;
@@ -58,7 +62,7 @@ struct album {
 struct filename {
 	struct list_head entry;
 	char *filename;
-	char md5[16];
+	unsigned char md5[16];
 };
 
 static LIST_HEAD(album_list);
@@ -191,6 +195,19 @@ exit:
 	return buffer_size;
 }
 
+static size_t parse_upload(void *buffer, size_t size, size_t nmemb, void *userp)
+{
+	size_t buffer_size = size * nmemb;
+	char *temp = buffer;
+
+	if (sanitize_buffer(buffer, size, nmemb))
+		goto exit;
+
+	dbg("%s: buffer = '%s'\n", __func__, temp);
+
+exit:
+	return buffer_size;
+}
 
 static size_t parse_logout(void *buffer, size_t size, size_t nmemb, void *userp)
 {
@@ -214,6 +231,16 @@ static inline void *ptr_align(void const *ptr, size_t alignment)
 	char const *p0 = ptr;
 	char const *p1 = p0 + alignment - 1;
 	return (void *) (p1 - (size_t) p1 % alignment);
+}
+
+static void sprintf_md5(char *string, unsigned char *md5)
+{
+	sprintf(string,
+		"%.2x%.2x%.2x%.2x%.2x%.2x%.2x%.2x"
+		"%.2x%.2x%.2x%.2x%.2x%.2x%.2x%.2x",
+		md5[0], md5[1], md5[2], md5[3], md5[4], md5[5], md5[6],
+		md5[7], md5[8], md5[9], md5[10], md5[11], md5[12], md5[13],
+		md5[14], md5[15]);
 }
 
 static int generate_md5(void)
@@ -243,19 +270,84 @@ static int generate_md5(void)
 			return -err;
 		}
 		memcpy(filename->md5, md5, 16);
-		sprintf(md5_string,
-			"%.2x%.2x%.2x%.2x%.2x%.2x%.2x%.2x"
-			"%.2x%.2x%.2x%.2x%.2x%.2x%.2x%.2x",
-			md5[0], md5[1], md5[2], md5[3], md5[4], md5[5],
-			md5[6], md5[7], md5[8], md5[9], md5[10], md5[11],
-			md5[12], md5[13], md5[14], md5[15]);
+		sprintf_md5(md5_string, &md5[0]);
 		dbg("md5 of %s is %s\n", filename->filename, md5_string);
 		fclose(fp);
 	}
 	return 0;
 }
 
+static int upload_file(CURL *curl, struct filename *filename,
+		       struct album *album)
+{
+	FILE *fd;
+	int file_handle;
+	struct stat file_info;
+	CURLcode res;
+	char buffer[100];
+	char url[1000];
+	char md5_string[64];
+	struct curl_slist *headers = NULL;
 
+	file_handle = open(filename->filename, O_RDONLY);
+	fstat(file_handle, &file_info);
+	close(file_handle);
+	fd = fopen(filename->filename, "rb");
+	if (!fd)
+		return -EINVAL;
+
+	dbg("%s is %d bytes big\n", filename->filename, (int)file_info.st_size);
+
+	sprintf(url, smugmug_upload_url, filename->filename);
+	curl_easy_setopt(curl, CURLOPT_URL, url);
+
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, parse_upload);
+	curl_easy_setopt(curl, CURLOPT_UPLOAD, 1);
+	curl_easy_setopt(curl, CURLOPT_PUT, 1);
+	curl_easy_setopt(curl, CURLOPT_READDATA, fd);
+	curl_easy_setopt(curl, CURLOPT_INFILESIZE_LARGE,
+			 (curl_off_t)file_info.st_size);
+
+	sprintf_md5(&md5_string[0], &filename->md5[0]);
+	sprintf(buffer, "Content-MD5: %s", md5_string);
+	dbg("%s\n", buffer);
+	headers = curl_slist_append(headers, buffer);
+	headers = curl_slist_append(headers, "X-Smug-Version: 1.2.0");
+	headers = curl_slist_append(headers, "X-Smug-ResponseType: REST");
+	sprintf(buffer, "X-Smug-SessionID: %s", session_id);
+	dbg("%s\n", buffer);
+	headers = curl_slist_append(headers, buffer);
+	sprintf(buffer, "X-Smug-AlbumID: %s", album->id);
+	dbg("%s\n", buffer);
+	headers = curl_slist_append(headers, buffer);
+
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+	dbg("starting upload...\n");
+	res = curl_easy_perform(curl);
+	if (res)
+		printf("upload error %d, exiting\n", res);
+
+	curl_slist_free_all(headers);
+	return (int)res;
+}
+
+static int upload_files(CURL *curl, struct album *album)
+{
+	struct filename *filename;
+	int err;
+
+	if (!num_files_to_transfer)
+		return 0;
+
+	list_for_each_entry(filename, &filename_list, entry) {
+		err = upload_file(curl, filename, album);
+		if (err)
+			return err;
+	}
+	curl_easy_cleanup(curl);
+	return 0;
+}
 
 static void display_help(void)
 {
@@ -363,24 +455,30 @@ int main(int argc, char *argv[], char *envp[])
 	if (generate_md5())
 		goto exit;
 
+	printf("%d files to tranfer:\n", num_files_to_transfer);
+	list_for_each_entry(filename, &filename_list, entry) {
+		printf("%s\n", filename->filename);
+		}
+
 	{
 		struct album *album;
 		printf("availble albums:\nalbum id\talbum name\n");
 		list_for_each_entry(album, &album_list, entry) {
 			printf("%s\t\t%s\n", album->id, album->title);
+			if (strcmp(album->title, "temp") == 0)
+				break;
 			}
 		printf("\nwhich album id to upload to?\n");
-
+		upload_files(curl, album);
 	}
 
-	{
-		printf("%d files to tranfer:\n", num_files_to_transfer);
-		list_for_each_entry(filename, &filename_list, entry) {
-			printf("%s\n", filename->filename);
-			}
-
+	/* logout */
+	curl = curl_easy_init();
+	if (!curl) {
+		printf("Can not init CURL!\n");
+		return 1;
 	}
-/* logout */
+	curl_easy_setopt(curl, CURLOPT_USERAGENT, user_agent);
 	sprintf(url, smugmug_logout_url, session_id, api_key);
 	dbg("url = %s\n", url);
 	curl_easy_setopt(curl, CURLOPT_URL, url);
