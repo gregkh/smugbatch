@@ -62,12 +62,28 @@ struct album {
 struct filename {
 	struct list_head entry;
 	char *filename;
+	char *basename;
 	unsigned char md5[16];
 };
 
 static LIST_HEAD(album_list);
 static LIST_HEAD(filename_list);
 static int num_files_to_transfer;
+
+static char *my_basename(char *name)
+{
+	char *temp;
+	int length = strlen(name);
+
+	temp = &name[length];
+	while (length && *temp != '/') {
+		--temp;
+		--length;
+	}
+	if (*temp == '/')
+		++temp;
+	return strdup(temp);
+}
 
 static void free_album_list(void)
 {
@@ -90,6 +106,8 @@ static void free_filename_list(void)
 
 	list_for_each_entry_safe(filename, temp, &filename_list, entry) {
 		dbg("cleaning up filename %s\n", filename->filename);
+		free(filename->filename);
+		free(filename->basename);
 		free(filename);
 	}
 }
@@ -283,7 +301,7 @@ static int progress_func(char *filename,
 			 double ultotal,
 			 double ulnow)
 {
-	fprintf(stdout, "    \r%s: %g / %g (%g %%)", filename, ulnow, ultotal, ulnow*100.0/ultotal);
+	fprintf(stdout, "    \r%s: %g / %g (%g%%)", filename, ulnow, ultotal, ulnow*100.0/ultotal);
 	fflush(stdout);
 //	printf("%g / %g (%g %%)\n", d, t, d*100.0/t);
 	return 0;
@@ -310,7 +328,7 @@ static int upload_file(CURL *curl, struct filename *filename,
 
 	dbg("%s is %d bytes big\n", filename->filename, (int)file_info.st_size);
 
-	sprintf(url, smugmug_upload_url, filename->filename);
+	sprintf(url, smugmug_upload_url, filename->basename);
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, parse_upload);
@@ -345,6 +363,8 @@ static int upload_file(CURL *curl, struct filename *filename,
 		printf("upload error %d, exiting\n", res);
 
 	curl_slist_free_all(headers);
+	fprintf(stdout, "\n");
+	fflush(stdout);
 	return (int)res;
 }
 
@@ -416,7 +436,8 @@ int main(int argc, char *argv[], char *envp[])
 		filename = malloc(sizeof(*filename));
 		if (!filename)
 			goto exit;
-		filename->filename = argv[i];
+		filename->filename = strdup(argv[i]);
+		filename->basename = my_basename(filename->filename);
 		dbg("adding filename '%s'\n", argv[i]);
 		list_add_tail(&filename->entry, &filename_list);
 		++num_files_to_transfer;
