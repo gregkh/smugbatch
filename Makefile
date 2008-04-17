@@ -20,7 +20,9 @@ VERSION = 001
 
 PROGRAM = smugbatch
 
-SMUG_OBJS = smugbatch.o
+SMUG_OBJS = \
+	smugbatch.o	\
+	md5.o
 
 GEN_HEADERS = \
 	smugbatch_version.h
@@ -56,9 +58,9 @@ export E Q
 LIB_OBJS = -lcurl -lnsl -lssl -lcrypto
 
 # "Static Pattern Rule" to build all programs
-$(PROGRAM): %: $(HEADERS) $(GEN_HEADERS) %.o
+$(PROGRAM): %: $(HEADERS) $(GEN_HEADERS) $(SMUG_OBJS)
 	$(E) "  LD      " $@
-	$(Q) $(LD) $(LDFLAGS) $@.o -o $@ $(LIB_OBJS)
+	$(Q) $(LD) $(LDFLAGS) $(SMUG_OBJS) -o $@ $(LIB_OBJS)
 
 
 # build the objects
