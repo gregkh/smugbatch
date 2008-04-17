@@ -25,7 +25,13 @@
 #include "list.h"
 #include "smugbatch_version.h"
 
-#define VERSION	"001"
+
+#define dbg(format, arg...)						\
+	do {								\
+		if (debug)						\
+			printf("%s: " format , __func__ , ## arg );	\
+	} while (0)
+
 
 static char *api_key = "ABW1oenNznek2rD4AIiFn7OhkEkmzEIb";
 static char *user_agent = "smugbatch/"SMUGBATCH_VERSION" (greg@kroah.com)";
@@ -33,6 +39,7 @@ static char *user_agent = "smugbatch/"SMUGBATCH_VERSION" (greg@kroah.com)";
 static char *password;
 static char *email;
 static char *session_id;
+static int debug;
 
 static char *session_id_tag = "Session id";
 
@@ -103,15 +110,14 @@ static size_t parse_login(void *buffer, size_t size, size_t nmemb, void *userp)
 	if (sanitize_buffer(buffer, size, nmemb))
 		goto exit;
 
-	/* all we care about is <SessionID> */
-	printf("buffer = '%s'\n", temp);
+	dbg("buffer = '%s'\n", temp);
 	session_id = find_value(buffer, session_id_tag, NULL);
 
-	printf("session_id = %s\n", session_id);
+	dbg("session_id = %s\n", session_id);
 
 exit:
 	if (!session_id)
-		printf("SessionID not found!");
+		dbg("SessionID not found!");
 	return buffer_size;
 }
 
@@ -127,7 +133,7 @@ static size_t parse_albums(void *buffer, size_t size, size_t nmemb, void *userp)
 	if (sanitize_buffer(buffer, size, nmemb))
 		goto exit;
 
-	printf("%s: buffer = '%s'\n", __func__, temp);
+	dbg("%s: buffer = '%s'\n", __func__, temp);
 
 	while (1) {
 		id = find_value(temp, "Album id", &temp);
@@ -139,7 +145,7 @@ static size_t parse_albums(void *buffer, size_t size, size_t nmemb, void *userp)
 		title = find_value(temp, "Title", &temp);
 		if (!title)
 			break;
-		printf("%s: %s: %s\n", id, key, title);
+		dbg("%s: %s: %s\n", id, key, title);
 		album = malloc(sizeof(*album));
 		album->id = id;
 		album->key = key;
@@ -160,7 +166,7 @@ static size_t parse_logout(void *buffer, size_t size, size_t nmemb, void *userp)
 	if (sanitize_buffer(buffer, size, nmemb))
 		goto exit;
 
-	printf("%s: buffer = '%s'\n", __func__, temp);
+	dbg("%s: buffer = '%s'\n", __func__, temp);
 
 exit:
 	return buffer_size;
@@ -180,6 +186,7 @@ int main(int argc, char *argv[], char *envp[])
 	int option;
 	char *filename;
 	static const struct option options[] = {
+		{ "debug", 0, NULL, 'd' },
 		{ "email", 1, NULL, 'e' },
 		{ "password", 1, NULL, 'p' },
 		{ "help", 0, NULL, 'h' },
@@ -187,17 +194,20 @@ int main(int argc, char *argv[], char *envp[])
 	};
 
 	while (1) {
-		option = getopt_long(argc, argv, "e:p:h", options, NULL);
+		option = getopt_long(argc, argv, "de:p:h", options, NULL);
 		if (option == -1)
 			break;
 		switch (option) {
+		case 'd':
+			debug = 1;
+			break;
 		case 'e':
 			email = strdup(optarg);
-			printf("email = %s\n", email);
+			dbg("email = %s\n", email);
 			break;
 		case 'p':
 			password = strdup(optarg);
-			printf("password = %s\n", password);
+			dbg("password = %s\n", password);
 			break;
 		case 'h':
 			display_help();
@@ -215,7 +225,7 @@ int main(int argc, char *argv[], char *envp[])
 	}
 
 	sprintf(url, smugmug_login_url, email, password, api_key);
-	printf("url = %s\n", url);
+	dbg("url = %s\n", url);
 
 	curl = curl_easy_init();
 	if (!curl) {
@@ -265,7 +275,7 @@ int main(int argc, char *argv[], char *envp[])
 
 	/* Get list of albums for this user */
 	sprintf(url, smugmug_album_list_url, session_id, api_key);
-	printf("url = %s\n", url);
+	dbg("url = %s\n", url);
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, parse_albums);
 	res = curl_easy_perform(curl);
@@ -276,14 +286,17 @@ int main(int argc, char *argv[], char *envp[])
 
 	{
 		struct album *album;
+		printf("Availble albums:\nAlbum ID\tAlbum Name\n");
 		list_for_each_entry(album, &album_list, entry) {
-			printf("%s: %s: %s\n", album->id, album->key, album->title);
+			printf("%s\t\t%s\n", album->id, album->title);
 			}
+		printf("\nWhich Album ID to upload to?");
+
 	}
 
 	/* logout */
 	sprintf(url, smugmug_logout_url, session_id, api_key);
-	printf("url = %s\n", url);
+	dbg("url = %s\n", url);
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, parse_logout);
 	res = curl_easy_perform(curl);
