@@ -301,7 +301,7 @@ static int progress_func(char *filename,
 			 double ultotal,
 			 double ulnow)
 {
-	fprintf(stdout, "    \r%s: %g / %g (%g%%)", filename, ulnow, ultotal, ulnow*100.0/ultotal);
+	fprintf(stdout, "    \r%s: %d / %d (%d%%)", filename, (int)ulnow, (int)ultotal, (int)(ulnow*100.0/ultotal));
 	fflush(stdout);
 //	printf("%g / %g (%g %%)\n", d, t, d*100.0/t);
 	return 0;
@@ -355,7 +355,7 @@ static int upload_file(CURL *curl, struct filename *filename,
 
 	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
 	curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_func);
-	curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, filename->filename);
+	curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, filename->basename);
 
 	dbg("starting upload...\n");
 	res = curl_easy_perform(curl);
