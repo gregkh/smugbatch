@@ -55,7 +55,8 @@ export E Q
 # We need -lsocket and -lnsl when on Solaris
 # We need -lssl and -lcrypto when using libcurl with SSL support
 # We need -lpthread for the pthread example
-LIB_OBJS = -lcurl -lnsl -lssl -lcrypto
+#LIB_OBJS = -lcurl -lnsl -lssl -lcrypto
+LIB_OBJS = -lcurl -lnsl 
 
 # "Static Pattern Rule" to build all programs
 $(PROGRAM): %: $(HEADERS) $(GEN_HEADERS) $(SMUG_OBJS)
