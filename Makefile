@@ -22,6 +22,7 @@ PROGRAM = smugbatch
 
 SMUG_OBJS = \
 	smugbatch.o	\
+	smug_core.o	\
 	md5.o
 
 GEN_HEADERS = \
