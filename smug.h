@@ -57,16 +57,16 @@ struct progress {
 	int upload;
 };
 
-struct smug_cups_buffer {
+struct smug_curl_buffer {
 	char *data;
 	int length;
 };
 
-extern struct smug_cups_buffer *smug_cups_buffer_alloc(void);
-extern void smug_cups_buffer_free(struct smug_cups_buffer *buffer);
-extern size_t cups_callback(void *buffer, size_t size, size_t nmemb,
+extern struct smug_curl_buffer *smug_curl_buffer_alloc(void);
+extern void smug_curl_buffer_free(struct smug_curl_buffer *buffer);
+extern size_t curl_callback(void *buffer, size_t size, size_t nmemb,
 			    void *userp);
-extern int cups_progress_func(struct progress *progress,
+extern int curl_progress_func(struct progress *progress,
 			      double dltotal, double dlnow,
 			      double ultotal, double ulnow);
 
@@ -75,9 +75,9 @@ extern void files_list_free(struct list_head *files);
 extern char *find_value(const char *haystack, const char *needle,
 			char **new_pos);
 
-extern int get_session_id(struct smug_cups_buffer *buffer,
+extern int get_session_id(struct smug_curl_buffer *buffer,
 			  struct session *session);
-extern int get_albums(struct smug_cups_buffer *buffer,
+extern int get_albums(struct smug_curl_buffer *buffer,
 		      struct session *session);
 
 extern CURL *curl_init(void);
@@ -85,6 +85,8 @@ extern CURL *curl_init(void);
 extern int upload_file(struct session *session, struct filename *filename,
 		       struct album *album, int position, int total);
 extern int upload_files(struct session *session, struct album *album);
+extern int smug_login(struct session *session);
+extern int smug_logout(struct session *session);
 
 extern int debug;
 

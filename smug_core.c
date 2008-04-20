@@ -129,23 +129,9 @@ char *find_value(const char *haystack, const char *needle, char **new_pos)
 	return value;
 }
 
-static int sanitize_buffer(char *buffer, size_t size, size_t nmemb)
+struct smug_curl_buffer *smug_curl_buffer_alloc(void)
 {
-	size_t buffer_size = size * nmemb;
-	char *temp;
-
-	if ((!buffer) || (!buffer_size))
-		return -EINVAL;
-
-	/* we aren't supposed to get a \0 terminated string, so make sure */
-	temp = buffer;
-	temp[buffer_size-1] = '\0';
-	return 0;
-}
-
-struct smug_cups_buffer *smug_cups_buffer_alloc(void)
-{
-	struct smug_cups_buffer *buffer;
+	struct smug_curl_buffer *buffer;
 
 	buffer = malloc(sizeof(*buffer));
 	if (!buffer)
@@ -163,7 +149,7 @@ struct smug_cups_buffer *smug_cups_buffer_alloc(void)
 	return buffer;
 }
 
-void smug_cups_buffer_free(struct smug_cups_buffer *buffer)
+void smug_curl_buffer_free(struct smug_curl_buffer *buffer)
 {
 	if (!buffer)
 		return;
@@ -172,34 +158,34 @@ void smug_cups_buffer_free(struct smug_cups_buffer *buffer)
 	free(buffer);
 }
 
-size_t cups_callback(void *buffer, size_t size, size_t nmemb, void *userp)
+size_t curl_callback(void *buffer, size_t size, size_t nmemb, void *userp)
 {
-	struct smug_cups_buffer *cups_buf = userp;
+	struct smug_curl_buffer *curl_buf = userp;
 	size_t buffer_size = size * nmemb;
 	char *temp;
 
-	if ((!buffer) || (!buffer_size) || (!cups_buf))
+	if ((!buffer) || (!buffer_size) || (!curl_buf))
 		return -EINVAL;
 
 	/* add to the data we already have */
-	temp = malloc(cups_buf->length + buffer_size + 1);
+	temp = malloc(curl_buf->length + buffer_size + 1);
 	if (!temp)
 		return -ENOMEM;
 
-	memcpy(temp, cups_buf->data, cups_buf->length);
-	free(cups_buf->data);
-	cups_buf->data = temp;
-	memcpy(&cups_buf->data[cups_buf->length], (char *)buffer, buffer_size);
-	cups_buf->length += buffer_size;
+	memcpy(temp, curl_buf->data, curl_buf->length);
+	free(curl_buf->data);
+	curl_buf->data = temp;
+	memcpy(&curl_buf->data[curl_buf->length], (char *)buffer, buffer_size);
+	curl_buf->length += buffer_size;
 
 	/* null terminate the string as we are going to end up
 	 * using string functions on the buffer */
-	cups_buf->data[cups_buf->length + 1] = 0x00;
+	curl_buf->data[curl_buf->length + 1] = 0x00;
 
 	return buffer_size;
 }
 
-int get_session_id(struct smug_cups_buffer *buffer, struct session *session)
+int get_session_id(struct smug_curl_buffer *buffer, struct session *session)
 {
 	session->session_id = find_value(buffer->data, session_id_tag, NULL);
 	if (!session->session_id)
@@ -207,7 +193,7 @@ int get_session_id(struct smug_cups_buffer *buffer, struct session *session)
 	return 0;
 }
 
-int get_albums(struct smug_cups_buffer *buffer, struct session *session)
+int get_albums(struct smug_curl_buffer *buffer, struct session *session)
 {
 	char *temp = buffer->data;
 	struct album *album;
@@ -294,7 +280,7 @@ static int generate_md5(struct list_head *files)
 	return 0;
 }
 
-int cups_progress_func(struct progress *progress,
+int curl_progress_func(struct progress *progress,
 		       double dltotal, double dlnow,
 		       double ultotal, double ulnow)
 {
@@ -323,7 +309,7 @@ int cups_progress_func(struct progress *progress,
 int upload_file(struct session *session, struct filename *filename,
 		struct album *album, int position, int total)
 {
-	struct smug_cups_buffer *buffer;
+	struct smug_curl_buffer *buffer;
 	CURL *curl;
 	FILE *fd;
 	int file_handle;
@@ -335,7 +321,7 @@ int upload_file(struct session *session, struct filename *filename,
 	struct curl_slist *headers = NULL;
 	struct progress *progress;
 
-	buffer = smug_cups_buffer_alloc();
+	buffer = smug_curl_buffer_alloc();
 	if (!buffer)
 		return -ENOMEM;
 
@@ -363,7 +349,7 @@ int upload_file(struct session *session, struct filename *filename,
 	sprintf(url, smugmug_upload_url, filename->basename);
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, cups_callback);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_callback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, buffer);
 	curl_easy_setopt(curl, CURLOPT_UPLOAD, 1);
 	curl_easy_setopt(curl, CURLOPT_PUT, 1);
@@ -387,7 +373,7 @@ int upload_file(struct session *session, struct filename *filename,
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
 	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
-	curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, cups_progress_func);
+	curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, curl_progress_func);
 	curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, progress);
 
 	dbg("starting upload...\n");
@@ -422,3 +408,86 @@ int upload_files(struct session *session, struct album *album)
 	return 0;
 }
 
+int smug_login(struct session *session)
+{
+	char url[1000];
+	struct smug_curl_buffer *curl_buf;
+	CURL *curl = NULL;
+	CURLcode res;
+	int retval;
+
+	if (!session)
+		return -EINVAL;
+
+	curl_buf = smug_curl_buffer_alloc();
+	if (!curl_buf)
+		return -ENOMEM;
+
+	curl = curl_init();
+	if (!curl)
+		return -EINVAL;
+
+	sprintf(url, smugmug_login_url, session->email,
+		session->password, api_key);
+	dbg("url = %s\n", url);
+
+	curl_easy_setopt(curl, CURLOPT_URL, url);
+
+	/* some ssl sanity checks on the connection we are making */
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
+
+	/* log into smugmug */
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_callback);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, curl_buf);
+	res = curl_easy_perform(curl);
+	if (res) {
+		printf("error(%d) trying to login\n", res);
+		return -EINVAL;
+	}
+
+	retval = get_session_id(curl_buf, session);
+	if (retval) {
+		fprintf(stderr, "session_id was not found\n");
+		return -EINVAL;
+	}
+
+	smug_curl_buffer_free(curl_buf);
+	curl_easy_cleanup(curl);
+	return 0;
+}
+
+int smug_logout(struct session *session)
+{
+	char url[1000];
+	struct smug_curl_buffer *curl_buf;
+	CURL *curl = NULL;
+	CURLcode res;
+
+	if (!session)
+		return -EINVAL;
+
+	curl_buf = smug_curl_buffer_alloc();
+	if (!curl_buf)
+		return -ENOMEM;
+
+	curl = curl_init();
+	if (!curl)
+		return -EINVAL;
+
+	sprintf(url, smugmug_logout_url, session->session_id, api_key);
+	dbg("url = %s\n", url);
+
+	curl_easy_setopt(curl, CURLOPT_URL, url);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_callback);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, curl_buf);
+	res = curl_easy_perform(curl);
+	if (res) {
+		fprintf(stderr, "error(%d) trying to logout\n", res);
+		return -EINVAL;
+	}
+
+	smug_curl_buffer_free(curl_buf);
+	curl_easy_cleanup(curl);
+	return 0;
+}
