@@ -62,6 +62,7 @@ struct smug_curl_buffer {
 	int length;
 };
 
+extern char *my_basename(char *name);
 extern struct smug_curl_buffer *smug_curl_buffer_alloc(void);
 extern void smug_curl_buffer_free(struct smug_curl_buffer *buffer);
 extern size_t curl_callback(void *buffer, size_t size, size_t nmemb,
@@ -87,6 +88,8 @@ extern int upload_file(struct session *session, struct filename *filename,
 extern int upload_files(struct session *session, struct album *album);
 extern int smug_login(struct session *session);
 extern int smug_logout(struct session *session);
+extern int generate_md5s(struct list_head *files);
+extern int smug_get_albums(struct session *session);
 
 extern int debug;
 

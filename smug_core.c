@@ -58,7 +58,7 @@ CURL *curl_init(void)
 }
 
 
-static char *my_basename(char *name)
+char *my_basename(char *name)
 {
 	char *temp;
 	int length = strlen(name);
@@ -246,7 +246,7 @@ static void sprintf_md5(char *string, unsigned char *md5)
 		md5[14], md5[15]);
 }
 
-static int generate_md5(struct list_head *files)
+int generate_md5s(struct list_head *files)
 {
 	struct filename *filename;
 	FILE *fp;
@@ -484,6 +484,47 @@ int smug_logout(struct session *session)
 	res = curl_easy_perform(curl);
 	if (res) {
 		fprintf(stderr, "error(%d) trying to logout\n", res);
+		return -EINVAL;
+	}
+
+	smug_curl_buffer_free(curl_buf);
+	curl_easy_cleanup(curl);
+	return 0;
+}
+
+int smug_get_albums(struct session *session)
+{
+	char url[1000];
+	struct smug_curl_buffer *curl_buf;
+	CURL *curl = NULL;
+	CURLcode res;
+	int retval;
+
+	if (!session)
+		return -EINVAL;
+
+	curl_buf = smug_curl_buffer_alloc();
+	if (!curl_buf)
+		return -ENOMEM;
+
+	curl = curl_init();
+	if (!curl)
+		return -EINVAL;
+
+	sprintf(url, smugmug_album_list_url, session->session_id, api_key);
+	dbg("url = %s\n", url);
+	curl_easy_setopt(curl, CURLOPT_URL, url);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_callback);
+	res = curl_easy_perform(curl);
+	if (res) {
+		fprintf(stderr, "error(%d) trying to read list of albums\n",
+			res);
+		return -EINVAL;
+	}
+
+	retval = get_albums(curl_buf, session);
+	if (retval) {
+		fprintf(stderr, "error parsing albums\n");
 		return -EINVAL;
 	}
 
