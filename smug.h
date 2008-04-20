@@ -19,6 +19,7 @@
 #ifndef __SMUG_H
 #define __SMUG_H
 
+#include <curl/curl.h>
 #include "list.h"
 
 #define dbg(format, arg...)						\
@@ -65,6 +66,8 @@ struct smug_curl_buffer {
 extern char *my_basename(char *name);
 extern struct smug_curl_buffer *smug_curl_buffer_alloc(void);
 extern void smug_curl_buffer_free(struct smug_curl_buffer *buffer);
+extern struct session *session_alloc(void);
+extern void session_free(struct session *session);
 extern size_t curl_callback(void *buffer, size_t size, size_t nmemb,
 			    void *userp);
 extern int curl_progress_func(struct progress *progress,

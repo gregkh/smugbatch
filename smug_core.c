@@ -158,6 +158,33 @@ void smug_curl_buffer_free(struct smug_curl_buffer *buffer)
 	free(buffer);
 }
 
+struct session *session_alloc(void)
+{
+	struct session *session;
+
+	session = malloc(sizeof(*session));
+	if (!session)
+		return NULL;
+	memset(session, 0x00, sizeof(*session));
+	INIT_LIST_HEAD(&session->albums);
+	INIT_LIST_HEAD(&session->files_upload);
+	INIT_LIST_HEAD(&session->files_download);
+	return session;
+}
+
+void session_free(struct session *session)
+{
+	if (!session)
+		return;
+	free(session->password);
+	free(session->email);
+	free(session->session_id);
+	album_list_free(&session->albums);
+	files_list_free(&session->files_upload);
+	files_list_free(&session->files_download);
+	free(session);
+}
+
 size_t curl_callback(void *buffer, size_t size, size_t nmemb, void *userp)
 {
 	struct smug_curl_buffer *curl_buf = userp;
