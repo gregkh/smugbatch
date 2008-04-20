@@ -43,7 +43,7 @@ static char *user_agent = "smugbatch/"SMUGBATCH_VERSION" (greg@kroah.com)";
 static char *password;
 static char *email;
 static char *session_id;
-static int debug;
+int debug;
 
 static char *session_id_tag = "Session id";
 
