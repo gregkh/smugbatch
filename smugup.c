@@ -34,7 +34,13 @@ int debug;
 
 static void display_help(void)
 {
-	printf("help goes here...\n");
+	fprintf(stdout, "smugup - upload photos to smugmug.com\n");
+	fprintf(stdout, "Usage:\n");
+	fprintf(stdout, "  smugup [options] files\n");
+	fprintf(stdout, "options are:\n");
+	fprintf(stdout, "  --email email@address\n");
+	fprintf(stdout, "  --password password\n");
+	fprintf(stdout, "  --debug");
 }
 
 int main(int argc, char *argv[], char *envp[])
