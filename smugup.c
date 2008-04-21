@@ -59,6 +59,8 @@ int main(int argc, char *argv[], char *envp[])
 		return -1;
 	}
 
+	curl_global_init(CURL_GLOBAL_ALL);
+
 	while (1) {
 		option = getopt_long(argc, argv, "de:p:h", options, NULL);
 		if (option == -1)
@@ -102,13 +104,14 @@ int main(int argc, char *argv[], char *envp[])
 	}
 
 	retval = smug_login(session);
-	if (!retval) {
+	if (retval) {
 		fprintf(stderr, "Can not login\n");
 		return -1;
 	}
 
+	dbg("1\n");
 	retval = smug_get_albums(session);
-	if (!retval) {
+	if (retval) {
 		fprintf(stderr, "Can not read albums\n");
 		return -1;
 	}
