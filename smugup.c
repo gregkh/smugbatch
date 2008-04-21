@@ -40,7 +40,9 @@ static void display_help(void)
 	fprintf(stdout, "options are:\n");
 	fprintf(stdout, "  --email email@address\n");
 	fprintf(stdout, "  --password password\n");
-	fprintf(stdout, "  --debug");
+	fprintf(stdout, "  --album album\n");
+	fprintf(stdout, "  --debug\n");
+	fprintf(stdout, "  --help\n");
 }
 
 int main(int argc, char *argv[], char *envp[])
@@ -49,15 +51,18 @@ int main(int argc, char *argv[], char *envp[])
 		{ "debug", 0, NULL, 'd' },
 		{ "email", 1, NULL, 'e' },
 		{ "password", 1, NULL, 'p' },
+		{ "album", 1, NULL, 'a' },
 		{ "help", 0, NULL, 'h' },
 		{ }
 	};
 	struct filename *filename;
 	struct session *session;
 	struct album *album;
+	char *album_title = NULL;
 	int retval;
 	int option;
 	int i;
+	int found_album;
 
 	session = session_alloc();
 	if (!session) {
@@ -68,7 +73,7 @@ int main(int argc, char *argv[], char *envp[])
 	curl_global_init(CURL_GLOBAL_ALL);
 
 	while (1) {
-		option = getopt_long(argc, argv, "de:p:h", options, NULL);
+		option = getopt_long_only(argc, argv, "de:p:a:h", options, NULL);
 		if (option == -1)
 			break;
 		switch (option) {
@@ -83,6 +88,10 @@ int main(int argc, char *argv[], char *envp[])
 			session->password = strdup(optarg);
 			dbg("password = %s\n", session->password);
 			break;
+		case 'a':
+			album_title = strdup(optarg);
+			dbg("album_title = %s\n", album_title);
+			break;
 		case 'h':
 			display_help();
 			goto exit;
@@ -92,9 +101,14 @@ int main(int argc, char *argv[], char *envp[])
 		}
 	}
 
-	if ((!session->email) || (!session->password)) {
-		display_help();
-		goto exit;
+	if (!session->email) {
+		fprintf(stdout, "Enter smugmug.com email address: ");
+		session->email = get_string_from_stdin();
+	}
+
+	if (!session->password) {
+		fprintf(stdout, "Enter smugmug.com password: ");
+		session->password = get_string_from_stdin();
 	}
 
 	/* build up a list of all filenames to be used here */
@@ -128,13 +142,26 @@ int main(int argc, char *argv[], char *envp[])
 		return -1;
 	}
 
-	printf("availble albums:\nalbum id\talbum name\n");
+	if (!album_title) {
+		fprintf(stdout, "Availble albums:\n");
+		list_for_each_entry(album, &session->albums, entry)
+			fprintf(stdout, "\t%s\n", album->title);
+		fprintf(stdout, "\nwhich album id to upload to? ");
+		album_title = get_string_from_stdin();
+	}
+
+	found_album = 0;
 	list_for_each_entry(album, &session->albums, entry) {
-		printf("%s\t\t%s\n", album->id, album->title);
-		if (strcmp(album->title, "temp") == 0)
+		if (strcmp(album->title, album_title) == 0) {
+			found_album = 1;
 			break;
 		}
-	printf("\nwhich album id to upload to?\n");
+	}
+	if (!found_album) {
+		fprintf(stdout, "Album %s is not found\n", album_title);
+		return -1;
+	}
+
 	retval = upload_files(session, album);
 	if (retval) {
 		fprintf(stderr, "Error uploading files\n");

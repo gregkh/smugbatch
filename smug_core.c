@@ -73,6 +73,21 @@ char *my_basename(char *name)
 	return strdup(temp);
 }
 
+char *get_string_from_stdin(void)
+{
+	char *temp;
+	char *string;
+
+	string = malloc(100);
+	if (!string)
+		return NULL;
+
+	fgets(string, 99, stdin);
+	temp = strchr(string, '\n');
+	*temp = '\0';
+	return string;
+}
+
 void album_list_free(struct list_head *albums)
 {
 	struct album *album;

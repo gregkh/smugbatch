@@ -64,6 +64,7 @@ struct smug_curl_buffer {
 };
 
 extern char *my_basename(char *name);
+extern char *get_string_from_stdin(void);
 extern struct smug_curl_buffer *smug_curl_buffer_alloc(void);
 extern void smug_curl_buffer_free(struct smug_curl_buffer *buffer);
 extern struct session *session_alloc(void);
