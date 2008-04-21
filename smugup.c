@@ -35,6 +35,7 @@ int debug;
 static void display_help(void)
 {
 	fprintf(stdout, "smugup - upload photos to smugmug.com\n");
+	fprintf(stdout, "Version: " SMUGBATCH_VERSION "\n");
 	fprintf(stdout, "Usage:\n");
 	fprintf(stdout, "  smugup [options] files\n");
 	fprintf(stdout, "options are:\n");
