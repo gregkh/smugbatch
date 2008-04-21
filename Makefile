@@ -89,3 +89,16 @@ clean:
 	$(Q) - rm -f core $(PROGRAM) $(GEN_HEADERS)
 .PHONY: clean
 
+release:
+	$(Q) - rm -f smugbatch-$(VERSION).tar.gz
+	$(Q) - rm -f smugbatch-$(VERSION).tar.bz2
+	head -1 ChangeLog | grep -q "to v$(VERSION)"
+	head -1 RELEASE-NOTES | grep -q "smugbatch $(VERSION)"
+	git commit -a -m "release $(VERSION)"
+	cat .git/refs/heads/master > .git/refs/tags/$(VERSION)
+	@ echo
+	git-archive --format=tar --prefix=smugbatch-$(VERSION)/ HEAD | gzip -9v > smugbatch-$(VERSION).tar.gz
+	git-archive --format=tar --prefix=smugbatch-$(VERSION)/ HEAD | bzip2 -9v > smugbatch-$(VERSION).tar.bz2
+.PHONY: release
+
+
