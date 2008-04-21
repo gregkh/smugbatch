@@ -1,0 +1,54 @@
+Summary of changes from v000 to v001
+============================================
+
+Greg KH (2):
+      make download show numbers in int not double and use only basename
+      remove some of the libraies we need
+
+Greg Kroah-Hartman (45):
+      added api key
+      added smugup-1.1.sh as the framework to work off of
+      .gitignore added
+      can read the session id properly
+      added simplessl.c example curl code
+      clean up code a bit, add other needed urls
+      add license and option parsing
+      add COPYING
+      Makefile rewrite.
+      fix compiler warning, hiding the fact that we were not reporting the error properly..
+      properly read the buffer sent to us by curl
+      now we can log out
+      set the proper useragent for the curl session
+      don't null out the session_id when reading the logout data
+      send the request for the list of albums
+      start of filename parsing...
+      add smugbatch_version.h to .gitignore
+      automatically generate smugbatch_version.h
+      switch to the 1.2.0 version of the smugmug api
+      we can now read albums
+      added --debug
+      added md5.c and md5.h from coreutils 6.9 release.
+      add md5 to build
+      get generation of md5 working properly
+      added *.swp to .gitignore
+      upload works!
+      remove simplessl as it's not needed
+      added test image to play with
+      add progress function
+      properly handle the basename of the uploaded file
+      add *.jpg to .gitignore
+      make debug global in smugbatch.c
+      add smug.h and smug_core.c
+      add smug_login and smug_logout
+      add album function
+      add session_alloc() and session_free()
+      added smugup.c
+      fix memory problem in smug_core.c
+      smugup: make the check for login properly...
+      Makefile: switch to smugup instead of smugdump
+      add smugup to .gitignore
+      add help to smugup
+      add ability to choose album to upload to
+      add version to help
+      add release target to Makefile
+
