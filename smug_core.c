@@ -139,13 +139,14 @@ struct smug_curl_buffer *smug_curl_buffer_alloc(void)
 
 	/* start out with a data buffer of 1 byte to
 	 * make the buffer fill logic simpler */
-	buffer->data = malloc(1);
+	buffer->data = malloc(2);
 	if (!buffer->data) {
 		free(buffer);
 		return NULL;
 	}
-	buffer->length = 0;
-	buffer->data[0] = 0x00;
+	buffer->length = 1;
+	buffer->data[0] = ' ';
+	buffer->data[1] = 0x00;
 	return buffer;
 }
 
@@ -153,8 +154,7 @@ void smug_curl_buffer_free(struct smug_curl_buffer *buffer)
 {
 	if (!buffer)
 		return;
-	if (buffer->data)
-		free(buffer->data);
+	free(buffer->data);
 	free(buffer);
 }
 
@@ -198,6 +198,7 @@ size_t curl_callback(void *buffer, size_t size, size_t nmemb, void *userp)
 	temp = malloc(curl_buf->length + buffer_size + 1);
 	if (!temp)
 		return -ENOMEM;
+	memset(temp, 0x00, curl_buf->length + buffer_size + 1);
 
 	memcpy(temp, curl_buf->data, curl_buf->length);
 	free(curl_buf->data);
@@ -205,9 +206,7 @@ size_t curl_callback(void *buffer, size_t size, size_t nmemb, void *userp)
 	memcpy(&curl_buf->data[curl_buf->length], (char *)buffer, buffer_size);
 	curl_buf->length += buffer_size;
 
-	/* null terminate the string as we are going to end up
-	 * using string functions on the buffer */
-	curl_buf->data[curl_buf->length + 1] = 0x00;
+	dbg("%s\n", curl_buf->data);
 
 	return buffer_size;
 }
@@ -327,7 +326,7 @@ int curl_progress_func(struct progress *progress,
 		total = (int)dltotal;
 		percent = (int)(dlnow*100.0/dltotal);
 	}
-	fprintf(stdout, "      \r%d of %d: %s: %dbytes of %dbytes (%d%%)",
+	fprintf(stdout, "      \r%d of %d: %s: %d of %d (%d%%)",
 		progress->position, progress->total,
 		progress->filename, now, total, percent);
 	return 0;
@@ -412,6 +411,7 @@ int upload_file(struct session *session, struct filename *filename,
 	fprintf(stdout, "\n");
 	fflush(stdout);
 	curl_easy_cleanup(curl);
+	smug_curl_buffer_free(buffer);
 	return (int)res;
 }
 
@@ -425,6 +425,7 @@ int upload_files(struct session *session, struct album *album)
 	list_for_each_entry(filename, &session->files_upload, entry)
 		++num_to_upload;
 
+	dbg("num_to_upload = %d\n", num_to_upload);
 	list_for_each_entry(filename, &session->files_upload, entry) {
 		++i;
 		retval = upload_file(session, filename, album,
@@ -437,7 +438,7 @@ int upload_files(struct session *session, struct album *album)
 
 int smug_login(struct session *session)
 {
-	char url[1000];
+	char url[500];
 	struct smug_curl_buffer *curl_buf;
 	CURL *curl = NULL;
 	CURLcode res;
@@ -479,14 +480,14 @@ int smug_login(struct session *session)
 		return -EINVAL;
 	}
 
-	smug_curl_buffer_free(curl_buf);
 	curl_easy_cleanup(curl);
+	smug_curl_buffer_free(curl_buf);
 	return 0;
 }
 
 int smug_logout(struct session *session)
 {
-	char url[1000];
+	char url[500];
 	struct smug_curl_buffer *curl_buf;
 	CURL *curl = NULL;
 	CURLcode res;
@@ -498,9 +499,11 @@ int smug_logout(struct session *session)
 	if (!curl_buf)
 		return -ENOMEM;
 
+	dbg("1\n");
 	curl = curl_init();
 	if (!curl)
 		return -EINVAL;
+	dbg("2\n");
 
 	sprintf(url, smugmug_logout_url, session->session_id, api_key);
 	dbg("url = %s\n", url);
@@ -514,8 +517,8 @@ int smug_logout(struct session *session)
 		return -EINVAL;
 	}
 
-	smug_curl_buffer_free(curl_buf);
 	curl_easy_cleanup(curl);
+	smug_curl_buffer_free(curl_buf);
 	return 0;
 }
 
@@ -542,6 +545,7 @@ int smug_get_albums(struct session *session)
 	dbg("url = %s\n", url);
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_callback);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, curl_buf);
 	res = curl_easy_perform(curl);
 	if (res) {
 		fprintf(stderr, "error(%d) trying to read list of albums\n",
@@ -555,7 +559,7 @@ int smug_get_albums(struct session *session)
 		return -EINVAL;
 	}
 
-	smug_curl_buffer_free(curl_buf);
 	curl_easy_cleanup(curl);
+	smug_curl_buffer_free(curl_buf);
 	return 0;
 }
