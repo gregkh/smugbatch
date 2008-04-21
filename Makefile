@@ -18,11 +18,11 @@
 
 VERSION = 001
 
-PROGRAM = smugbatch
+PROGRAM = smugup
 
 SMUG_OBJS = \
-	smugbatch.o	\
 	smug_core.o	\
+	smugup.o	\
 	md5.o
 
 GEN_HEADERS = \
