@@ -144,7 +144,7 @@ int main(int argc, char *argv[], char *envp[])
 	}
 
 	if (!album_title) {
-		fprintf(stdout, "Availble albums:\n");
+		fprintf(stdout, "Available albums:\n");
 		list_for_each_entry(album, &session->albums, entry)
 			fprintf(stdout, "\t%s\n", album->title);
 		fprintf(stdout, "\nwhich album id to upload to? ");
