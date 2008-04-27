@@ -1,6 +1,7 @@
 smugbatch
 smugbatch_version.h
 smugup
+smugls
 *.o
 *.swp
 *.jpg
