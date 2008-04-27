@@ -18,11 +18,19 @@
 
 VERSION = 002
 
-PROGRAM = smugup
+PROGRAM = smugup smugls
+
+PROGRAM_UP = smugup
+PROGRAM_LS = smugls
+
+CORE_OBJS = \
+	smug_core.o	\
+	md5.o
 
 SMUG_OBJS = \
 	smug_core.o	\
 	smugup.o	\
+	smugls.o	\
 	md5.o
 
 GEN_HEADERS = \
@@ -59,10 +67,16 @@ export E Q
 #LIB_OBJS = -lcurl -lnsl -lssl -lcrypto
 LIB_OBJS = -lcurl -lnsl 
 
+all:	$(PROGRAM)
+
 # "Static Pattern Rule" to build all programs
-$(PROGRAM): %: $(HEADERS) $(GEN_HEADERS) $(SMUG_OBJS)
+smugup: %: $(HEADERS) $(GEN_HEADERS) $(SMUG_OBJS)
 	$(E) "  LD      " $@
-	$(Q) $(LD) $(LDFLAGS) $(SMUG_OBJS) -o $@ $(LIB_OBJS)
+	$(Q) $(LD) $(LDFLAGS) $@.o $(CORE_OBJS) -o $@ $(LIB_OBJS)
+
+smugls: %: $(HEADERS) $(GEN_HEADERS) $(SMUG_OBJS)
+	$(E) "  LD      " $@
+	$(Q) $(LD) $(LDFLAGS) $@.o $(CORE_OBJS) -o $@ $(LIB_OBJS)
 
 
 # build the objects
