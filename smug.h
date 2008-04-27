@@ -40,6 +40,9 @@ struct filename {
 	char *filename;
 	char *basename;
 	unsigned char md5[16];
+	char *id;
+	char *key;
+	char *caption;
 };
 
 struct session {

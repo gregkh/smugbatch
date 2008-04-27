@@ -111,7 +111,14 @@ void files_list_free(struct list_head *files)
 	list_for_each_entry_safe(filename, temp, files, entry) {
 		dbg("cleaning up filename %s\n", filename->filename);
 		free(filename->filename);
-		free(filename->basename);
+		if (filename->basename)
+			free(filename->basename);
+		if (filename->id)
+			free(filename->id);
+		if (filename->key)
+			free(filename->key);
+		if (filename->caption)
+			free(filename->caption);
 		free(filename);
 	}
 }
@@ -268,6 +275,46 @@ int get_albums(struct smug_curl_buffer *buffer, struct session *session)
 	return 0;
 }
 
+static int get_images(struct smug_curl_buffer *buffer, struct session *session)
+{
+	char *temp = buffer->data;
+	struct filename *filename;
+	char *id;
+	char *key;
+	char *name;
+	char *caption;
+	int found_one = 0;
+
+	while (1) {
+		id = find_value(temp, "Image id", &temp);
+		if (!id)
+			break;
+		key = find_value(temp, "Key", &temp);
+		if (!key)
+			break;
+		name = find_value(temp, "FileName", &temp);
+		if (!name)
+			break;
+		caption = find_value(temp, "Caption", &temp);
+		if (!caption)
+			break;
+		dbg("%s: %s: %s: %s\n", id, key, name, caption);
+		filename = malloc(sizeof(*filename));
+		if (!filename)
+			break;
+		memset(filename, 0x00, sizeof(*filename));
+		filename->id = id;
+		filename->key = key;
+		filename->filename = name;
+		filename->caption = caption;
+		list_add_tail(&filename->entry, &session->files_download);
+		found_one++;
+	}
+
+	if (!found_one)
+		return -EINVAL;
+	return 0;
+}
 static unsigned char md5_data[100];
 
 /* from coreutils */
@@ -582,13 +629,6 @@ int smug_get_albums(struct session *session)
 	smug_curl_buffer_free(curl_buf);
 	return 0;
 }
-
-static int get_images(struct smug_curl_buffer *curl_buf,
-		      struct session *session)
-{
-	return 0;
-}
-
 
 int smug_read_images(struct session *session, struct album *album)
 {
