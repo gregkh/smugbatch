@@ -42,6 +42,7 @@ static char *smugmug_album_list_url = "https://api.smugmug.com/hack/rest/1.2.0/?
 static char *smugmug_login_url = "https://api.smugmug.com/hack/rest/1.2.0/?method=smugmug.login.withPassword&EmailAddress=%s&Password=%s&APIKey=%s";
 static char *smugmug_logout_url = "https://api.smugmug.com/hack/rest/1.2.0/?method=smugmug.logout&SessionID=%s&APIKey=%s";
 static char *smugmug_upload_url = "http://upload.smugmug.com/%s";
+static char *smugmug_image_list_url = "https://api.smugmug.com/hack/rest/1.2.0/?method=smugmug.images.get&SessionID=%s&Heavy=1&AlbumID=%s&AlbumKey=%s";
 
 
 CURL *curl_init(void)
@@ -410,6 +411,9 @@ int upload_file(struct session *session, struct filename *filename,
 	sprintf(buf, "X-Smug-AlbumID: %s", album->id);
 	dbg("%s\n", buf);
 	headers = curl_slist_append(headers, buf);
+	sprintf(buf, "X-Smug-FileName: %s", filename->basename);
+	dbg("%s\n", buf);
+	headers = curl_slist_append(headers, buf);
 
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
@@ -569,6 +573,56 @@ int smug_get_albums(struct session *session)
 	}
 
 	retval = get_albums(curl_buf, session);
+	if (retval) {
+		fprintf(stderr, "error parsing albums\n");
+		return -EINVAL;
+	}
+
+	curl_easy_cleanup(curl);
+	smug_curl_buffer_free(curl_buf);
+	return 0;
+}
+
+static int get_images(struct smug_curl_buffer *curl_buf,
+		      struct session *session)
+{
+	return 0;
+}
+
+
+int smug_read_images(struct session *session, struct album *album)
+{
+	char url[1000];
+	struct smug_curl_buffer *curl_buf;
+	CURL *curl = NULL;
+	CURLcode res;
+	int retval;
+
+	if (!session)
+		return -EINVAL;
+
+	curl_buf = smug_curl_buffer_alloc();
+	if (!curl_buf)
+		return -ENOMEM;
+
+	curl = curl_init();
+	if (!curl)
+		return -EINVAL;
+
+	sprintf(url, smugmug_image_list_url, session->session_id,
+		album->id, album->key);
+	dbg("url = %s\n", url);
+	curl_easy_setopt(curl, CURLOPT_URL, url);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_callback);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, curl_buf);
+	res = curl_easy_perform(curl);
+	if (res) {
+		fprintf(stderr, "error(%d) trying to read list of albums\n",
+			res);
+		return -EINVAL;
+	}
+
+	retval = get_images(curl_buf, session);
 	if (retval) {
 		fprintf(stderr, "error parsing albums\n");
 		return -EINVAL;
