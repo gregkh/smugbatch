@@ -56,13 +56,11 @@ int main(int argc, char *argv[], char *envp[])
 		{ "help", 0, NULL, 'h' },
 		{ }
 	};
-	struct filename *filename;
 	struct session *session;
 	struct album *album;
 	char *album_title = NULL;
 	int retval;
 	int option;
-	int i;
 	int found_album;
 
 	session = session_alloc();
