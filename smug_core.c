@@ -55,6 +55,10 @@ CURL *curl_init(void)
 		return NULL;
 	}
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, user_agent);
+
+	/* some ssl sanity checks on the connection we are making */
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
 	return curl;
 }
 
@@ -526,10 +530,6 @@ int smug_login(struct session *session)
 	dbg("url = %s\n", url);
 
 	curl_easy_setopt(curl, CURLOPT_URL, url);
-
-	/* some ssl sanity checks on the connection we are making */
-	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
-	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
 
 	/* log into smugmug */
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_callback);
