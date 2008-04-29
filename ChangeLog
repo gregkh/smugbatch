@@ -1,3 +1,20 @@
+Summary of changes from v001 to v002
+============================================
+
+Andreas Jaeger (2):
+      Always set the ssl sanity checks
+      Typo fix for smugup and smugls
+
+Greg Kroah-Hartman (7):
+      fix problem of not setting the filename for the images uploaded
+      increment version number...
+      added smugls to .gitignore
+      remove compiler warnings from smugls
+      build both smugup and smugls
+      add ability to read album contents to smug_core.c
+      make smugls actually list the files...
+
+
 Summary of changes from v000 to v001
 ============================================
 

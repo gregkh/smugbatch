@@ -1,3 +1,9 @@
+smugbatch 002
+=============
+smugls now lists files in an album
+smugup works sets the filename properly on uploaded files
+Fixes from Andreas to get uploading working for him.
+
 smugbatch 001
 =============
 smugup initial version
