@@ -45,17 +45,6 @@ static char *smugmug_upload_url = "http://upload.smugmug.com/%s";
 static char *smugmug_image_list_url = "https://api.smugmug.com/hack/rest/1.2.0/?method=smugmug.images.get&SessionID=%s&Heavy=1&AlbumID=%s&AlbumKey=%s";
 
 
-void *zalloc(size_t size)
-{
-	void *data;
-
-	data = malloc(size);
-	if (!data)
-		return NULL;
-	memset(data, 0x00, size);
-	return data;
-}
-
 CURL *curl_init(void)
 {
 	CURL *curl;
