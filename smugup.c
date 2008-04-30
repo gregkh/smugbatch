@@ -114,7 +114,7 @@ int main(int argc, char *argv[], char *envp[])
 
 	/* build up a list of all filenames to be used here */
 	for (i = optind; i < argc; ++i) {
-		filename = malloc(sizeof(*filename));
+		filename = zalloc(sizeof(*filename));
 		if (!filename)
 			// FIXME
 			return -ENOMEM;

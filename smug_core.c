@@ -45,6 +45,17 @@ static char *smugmug_upload_url = "http://upload.smugmug.com/%s";
 static char *smugmug_image_list_url = "https://api.smugmug.com/hack/rest/1.2.0/?method=smugmug.images.get&SessionID=%s&Heavy=1&AlbumID=%s&AlbumKey=%s";
 
 
+void *zalloc(size_t size)
+{
+	void *data;
+
+	data = malloc(size);
+	if (!data)
+		return NULL;
+	memset(data, 0x00, size);
+	return data;
+}
+
 CURL *curl_init(void)
 {
 	CURL *curl;
@@ -83,7 +94,7 @@ char *get_string_from_stdin(void)
 	char *temp;
 	char *string;
 
-	string = malloc(100);
+	string = zalloc(100);
 	if (!string)
 		return NULL;
 
@@ -137,7 +148,7 @@ char *find_value(const char *haystack, const char *needle, char **new_pos)
 	if (!location)
 		return NULL;
 
-	value = malloc(1000);
+	value = zalloc(1000);
 	if (!value)
 		return NULL;
 
@@ -160,13 +171,13 @@ struct smug_curl_buffer *smug_curl_buffer_alloc(void)
 {
 	struct smug_curl_buffer *buffer;
 
-	buffer = malloc(sizeof(*buffer));
+	buffer = zalloc(sizeof(*buffer));
 	if (!buffer)
 		return NULL;
 
 	/* start out with a data buffer of 1 byte to
 	 * make the buffer fill logic simpler */
-	buffer->data = malloc(2);
+	buffer->data = zalloc(2);
 	if (!buffer->data) {
 		free(buffer);
 		return NULL;
@@ -189,10 +200,9 @@ struct session *session_alloc(void)
 {
 	struct session *session;
 
-	session = malloc(sizeof(*session));
+	session = zalloc(sizeof(*session));
 	if (!session)
 		return NULL;
-	memset(session, 0x00, sizeof(*session));
 	INIT_LIST_HEAD(&session->albums);
 	INIT_LIST_HEAD(&session->files_upload);
 	INIT_LIST_HEAD(&session->files_download);
@@ -222,10 +232,9 @@ size_t curl_callback(void *buffer, size_t size, size_t nmemb, void *userp)
 		return -EINVAL;
 
 	/* add to the data we already have */
-	temp = malloc(curl_buf->length + buffer_size + 1);
+	temp = zalloc(curl_buf->length + buffer_size + 1);
 	if (!temp)
 		return -ENOMEM;
-	memset(temp, 0x00, curl_buf->length + buffer_size + 1);
 
 	memcpy(temp, curl_buf->data, curl_buf->length);
 	free(curl_buf->data);
@@ -266,7 +275,7 @@ int get_albums(struct smug_curl_buffer *buffer, struct session *session)
 		if (!title)
 			break;
 		dbg("%s: %s: %s\n", id, key, title);
-		album = malloc(sizeof(*album));
+		album = zalloc(sizeof(*album));
 		album->id = id;
 		album->key = key;
 		album->title = title;
@@ -303,10 +312,9 @@ static int get_images(struct smug_curl_buffer *buffer, struct session *session)
 		if (!caption)
 			break;
 		dbg("%s: %s: %s: %s\n", id, key, name, caption);
-		filename = malloc(sizeof(*filename));
+		filename = zalloc(sizeof(*filename));
 		if (!filename)
 			break;
-		memset(filename, 0x00, sizeof(*filename));
 		filename->id = id;
 		filename->key = key;
 		filename->filename = name;
@@ -418,7 +426,7 @@ int upload_file(struct session *session, struct filename *filename,
 	if (!buffer)
 		return -ENOMEM;
 
-	progress = malloc(sizeof(*progress));
+	progress = zalloc(sizeof(*progress));
 	if (!progress)
 		return -ENOMEM;
 	progress->filename = filename->basename;
