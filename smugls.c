@@ -128,7 +128,7 @@ int main(int argc, char *argv[], char *envp[])
 		fprintf(stdout, "Available albums:\n");
 		list_for_each_entry(album, &session->albums, entry)
 			fprintf(stdout, "\t%s\n", album->title);
-		fprintf(stdout, "\nwhich album id to list? ");
+		fprintf(stdout, "\nWhich album id to list? ");
 		album_title = get_string_from_stdin();
 	}
 
