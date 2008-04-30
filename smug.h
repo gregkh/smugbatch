@@ -43,6 +43,7 @@ struct filename {
 	char *id;
 	char *key;
 	char *caption;
+	char *original_url;
 };
 
 struct session {

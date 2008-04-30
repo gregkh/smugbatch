@@ -134,6 +134,8 @@ void files_list_free(struct list_head *files)
 			free(filename->key);
 		if (filename->caption)
 			free(filename->caption);
+		if (filename->original_url);
+			free(filename->original_url);
 		free(filename);
 	}
 }
@@ -296,6 +298,7 @@ static int get_images(struct smug_curl_buffer *buffer, struct session *session)
 	char *key;
 	char *name;
 	char *caption;
+	char *original_url;
 	int found_one = 0;
 
 	while (1) {
@@ -311,7 +314,10 @@ static int get_images(struct smug_curl_buffer *buffer, struct session *session)
 		caption = find_value(temp, "Caption", &temp);
 		if (!caption)
 			break;
-		dbg("%s: %s: %s: %s\n", id, key, name, caption);
+		original_url = find_value(temp, "OriginalURL", &temp);
+		if (!original_url)
+			break;
+		dbg("%s: %s: %s: %s: %s\n", id, key, name, caption, original_url);
 		filename = zalloc(sizeof(*filename));
 		if (!filename)
 			break;
@@ -319,6 +325,7 @@ static int get_images(struct smug_curl_buffer *buffer, struct session *session)
 		filename->key = key;
 		filename->filename = name;
 		filename->caption = caption;
+		filename->original_url = original_url;
 		list_add_tail(&filename->entry, &session->files_download);
 		found_one++;
 	}
