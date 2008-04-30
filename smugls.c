@@ -151,9 +151,13 @@ int main(int argc, char *argv[], char *envp[])
 	}
 
 	/* print out the files */
+	fprintf(stdout, "ID        Key   Filename\n");
 	list_for_each_entry(filename, &session->files_download, entry) {
-		fprintf(stdout, "%s %s %s %s \n", filename->id,
-			filename->key, filename->filename, filename->caption);
+		char *name = filename->filename;
+		if (strlen(name) == 0)
+			name = "<no name>";
+		fprintf(stdout, "%s %s %s\n", filename->id, filename->key,
+			name);
 	}
 
 	smug_logout(session);
