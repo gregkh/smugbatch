@@ -53,6 +53,7 @@ struct session {
 	struct list_head albums;
 	struct list_head files_upload;
 	struct list_head files_download;
+	int quiet;
 };
 
 struct progress {

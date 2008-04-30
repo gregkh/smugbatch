@@ -483,18 +483,22 @@ int upload_file(struct session *session, struct filename *filename,
 
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
-	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
-	curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, curl_progress_func);
-	curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, progress);
+	if (!session->quiet) {
+		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
+		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, curl_progress_func);
+		curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, progress);
+	}
 
 	dbg("starting upload...\n");
 	res = curl_easy_perform(curl);
 	if (res)
-		printf("upload error %d, exiting\n", res);
+		fprintf(stderr, "upload error %d, exiting\n", res);
 
 	curl_slist_free_all(headers);
-	fprintf(stdout, "\n");
-	fflush(stdout);
+	if (!session->quiet) {
+		fprintf(stdout, "\n");
+		fflush(stdout);
+	}
 	curl_easy_cleanup(curl);
 	smug_curl_buffer_free(buffer);
 	return (int)res;

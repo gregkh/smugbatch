@@ -42,6 +42,7 @@ static void display_help(void)
 	fprintf(stdout, "  --email email@address\n");
 	fprintf(stdout, "  --password password\n");
 	fprintf(stdout, "  --album album\n");
+	fprintf(stdout, "  --quiet\n");
 	fprintf(stdout, "  --debug\n");
 	fprintf(stdout, "  --help\n");
 }
@@ -54,6 +55,7 @@ int main(int argc, char *argv[], char *envp[])
 		{ "password", 1, NULL, 'p' },
 		{ "album", 1, NULL, 'a' },
 		{ "help", 0, NULL, 'h' },
+		{ "quiet", 0, NULL, 'q' },
 		{ }
 	};
 	struct filename *filename;
@@ -74,7 +76,7 @@ int main(int argc, char *argv[], char *envp[])
 	curl_global_init(CURL_GLOBAL_ALL);
 
 	while (1) {
-		option = getopt_long_only(argc, argv, "de:p:a:h", options, NULL);
+		option = getopt_long_only(argc, argv, "dqe:p:a:h", options, NULL);
 		if (option == -1)
 			break;
 		switch (option) {
@@ -92,6 +94,9 @@ int main(int argc, char *argv[], char *envp[])
 		case 'a':
 			album_title = strdup(optarg);
 			dbg("album_title = %s\n", album_title);
+			break;
+		case 'q':
+			session->quiet = 1;
 			break;
 		case 'h':
 			display_help();
