@@ -16,12 +16,9 @@
 #
 #
 
-VERSION = 002
+VERSION = 003
 
-PROGRAM = smugup smugls
-
-PROGRAM_UP = smugup
-PROGRAM_LS = smugls
+PROGRAM = smugup smugls smugdown
 
 CORE_OBJS = \
 	smug_core.o	\
@@ -31,6 +28,7 @@ SMUG_OBJS = \
 	smug_core.o	\
 	smugup.o	\
 	smugls.o	\
+	smugdown.o	\
 	md5.o
 
 GEN_HEADERS = \
@@ -75,6 +73,10 @@ smugup: %: $(HEADERS) $(GEN_HEADERS) $(SMUG_OBJS)
 	$(Q) $(LD) $(LDFLAGS) $@.o $(CORE_OBJS) -o $@ $(LIB_OBJS)
 
 smugls: %: $(HEADERS) $(GEN_HEADERS) $(SMUG_OBJS)
+	$(E) "  LD      " $@
+	$(Q) $(LD) $(LDFLAGS) $@.o $(CORE_OBJS) -o $@ $(LIB_OBJS)
+
+smugdown: %: $(HEADERS) $(GEN_HEADERS) $(SMUG_OBJS)
 	$(E) "  LD      " $@
 	$(Q) $(LD) $(LDFLAGS) $@.o $(CORE_OBJS) -o $@ $(LIB_OBJS)
 
