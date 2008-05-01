@@ -103,6 +103,7 @@ void album_list_free(struct list_head *albums)
 		free(album->id);
 		free(album->key);
 		free(album->title);
+		files_list_free(&album->files);
 		free(album);
 	}
 }
@@ -267,6 +268,7 @@ int get_albums(struct smug_curl_buffer *buffer, struct session *session)
 			break;
 		dbg("%s: %s: %s\n", id, key, title);
 		album = zalloc(sizeof(*album));
+		INIT_LIST_HEAD(&album->files);
 		album->id = id;
 		album->key = key;
 		album->title = title;
@@ -279,7 +281,7 @@ int get_albums(struct smug_curl_buffer *buffer, struct session *session)
 	return 0;
 }
 
-static int get_images(struct smug_curl_buffer *buffer, struct session *session)
+static int get_images(struct smug_curl_buffer *buffer, struct album *album)
 {
 	char *temp = buffer->data;
 	struct filename *filename;
@@ -315,7 +317,7 @@ static int get_images(struct smug_curl_buffer *buffer, struct session *session)
 		filename->filename = name;
 		filename->caption = caption;
 		filename->original_url = original_url;
-		list_add_tail(&filename->entry, &session->files_download);
+		list_add_tail(&filename->entry, &album->files);
 		found_one++;
 	}
 
@@ -670,7 +672,7 @@ int smug_read_images(struct session *session, struct album *album)
 		return -EINVAL;
 	}
 
-	retval = get_images(curl_buf, session);
+	retval = get_images(curl_buf, album);
 	if (retval) {
 		fprintf(stderr, "error parsing albums\n");
 		return -EINVAL;
