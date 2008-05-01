@@ -39,7 +39,7 @@ CC = $(CROSS_COMPILE)gcc
 LD = $(CROSS_COMPILE)gcc
 AR = $(CROSS_COMPILE)ar
 
-CFLAGS		+= -g -Wall -pipe -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64
+override CFLAGS	+= -g -Wall -pipe -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64
 
 WARNINGS	= -Wstrict-prototypes -Wsign-compare -Wshadow \
 		  -Wchar-subscripts -Wmissing-declarations -Wnested-externs \
