@@ -28,11 +28,21 @@
 			printf("%s: " format , __func__ , ## arg );	\
 	} while (0)
 
+/**
+ * struct album: holds the information for one album/gallery
+ *
+ * entry: list structure to hook it with other albums
+ * id: the album id
+ * key: the album key
+ * title: the album title
+ * files: the list of files currently in this album
+ */
 struct album {
 	struct list_head entry;
 	char *id;
 	char *key;
 	char *title;
+	struct list_head files;
 };
 
 struct filename {
