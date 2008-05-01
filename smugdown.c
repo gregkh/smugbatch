@@ -71,6 +71,7 @@ int main(int argc, char *argv[], char *envp[])
 	}
 
 	curl_global_init(CURL_GLOBAL_ALL);
+	smug_parse_configfile(session);
 
 	while (1) {
 		option = getopt_long_only(argc, argv, "de:p:a:h", options, NULL);

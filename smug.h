@@ -112,6 +112,7 @@ extern int smug_logout(struct session *session);
 extern int generate_md5s(struct list_head *files);
 extern int smug_get_albums(struct session *session);
 extern int smug_read_images(struct session *session, struct album *album);
+extern void smug_parse_configfile(struct session *session);
 
 extern int debug;
 

@@ -24,6 +24,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <ctype.h>
+#include <alloca.h>
 #include <curl/curl.h>
 #include "list.h"
 #include "md5.h"
@@ -682,4 +684,67 @@ int smug_read_images(struct session *session, struct album *album)
 	curl_easy_cleanup(curl);
 	smug_curl_buffer_free(curl_buf);
 	return 0;
+}
+
+void smug_parse_configfile (struct session *session)
+{
+	FILE *config_file;
+	char *line = NULL;
+	size_t len = 0;
+	char *email = NULL;
+	char *password = NULL;
+	char *smug_file;
+	char *home = getenv("HOME");
+
+	/* config file is ~/.smug  */
+	smug_file = alloca(strlen(home) + 7);
+
+	sprintf(smug_file, "%s/.smug", home);
+
+	config_file = fopen(smug_file, "r");
+
+	/* No error if file does not exist or is unreadable.  */
+	if (config_file == NULL)
+		return;
+
+	do {
+		ssize_t n = getline(&line, &len, config_file);
+		if (n < 0)
+			break;
+		if (line[n - 1] == '\n')
+			line[n - 1] = '\0';
+		/* Parse file.  Format is the usual value pairs:
+		   email=address
+		   passwort=value
+		   # is a comment character
+		*/
+		*strchrnul(line, '#') = '\0';
+		char *c = line;
+		while (isspace(*c))
+			c++;
+		/* Ignore blank lines.  */
+		if (c[0] == '\0')
+			continue;
+
+		if (!strncasecmp(c, "email", 5) && (c[5] == '=')) {
+			c+=6;
+			if (c[0] != '\0')
+				email = strdup (c);
+		} else if (!strncasecmp(c, "password", 8) &&
+			   (c[8] == '=')) {
+			c += 9;
+			if (c[0] != '\0')
+				password = strdup (c);
+		}
+	} while (!feof(config_file));
+
+	if (password)
+		session->password = password;
+	if (email)
+		session->email = email;
+
+	/* Free buffer and close file.  */
+	free(line);
+	fclose(config_file);
+
 }
