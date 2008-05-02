@@ -185,14 +185,12 @@ struct smug_curl_buffer *smug_curl_buffer_alloc(void)
 
 	/* start out with a data buffer of 1 byte to
 	 * make the buffer fill logic simpler */
-	buffer->data = zalloc(2);
+	buffer->data = zalloc(1);
 	if (!buffer->data) {
 		free(buffer);
 		return NULL;
 	}
-	buffer->length = 1;
-	buffer->data[0] = ' ';
-	buffer->data[1] = 0x00;
+	buffer->length = 0;
 	return buffer;
 }
 

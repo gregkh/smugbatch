@@ -78,7 +78,7 @@ struct smug_curl_buffer {
 	int length;
 };
 
-#define zalloc(size) calloc(size,1)
+#define zalloc(size)	calloc(size, 1)
 
 extern char *my_basename(char *name);
 extern char *get_string_from_stdin(void);
