@@ -40,11 +40,24 @@ static char *user_agent = "smugbatch/"SMUGBATCH_VERSION" (greg@kroah.com)";
 
 static char *session_id_tag = "Session id";
 
-static char *smugmug_album_list_url = "https://api.smugmug.com/hack/rest/1.2.0/?method=smugmug.albums.get&SessionID=%s&APIKey=%s";
-static char *smugmug_login_url = "https://api.smugmug.com/hack/rest/1.2.0/?method=smugmug.login.withPassword&EmailAddress=%s&Password=%s&APIKey=%s";
-static char *smugmug_logout_url = "https://api.smugmug.com/hack/rest/1.2.0/?method=smugmug.logout&SessionID=%s&APIKey=%s";
-static char *smugmug_upload_url = "http://upload.smugmug.com/%s";
-static char *smugmug_image_list_url = "https://api.smugmug.com/hack/rest/1.2.0/?method=smugmug.images.get&SessionID=%s&Heavy=1&AlbumID=%s&AlbumKey=%s";
+static char *smugmug_album_list_url =
+	"https://api.smugmug.com/hack/rest/1.2.0/?"
+		"method=smugmug.albums.get"
+		"&SessionID=%s&APIKey=%s";
+static char *smugmug_login_url =
+	"https://api.smugmug.com/hack/rest/1.2.0/?"
+		"method=smugmug.login.withPassword"
+		"&EmailAddress=%s&Password=%s&APIKey=%s";
+static char *smugmug_logout_url =
+	"https://api.smugmug.com/hack/rest/1.2.0/?"
+		"method=smugmug.logout"
+		"&SessionID=%s&APIKey=%s";
+static char *smugmug_image_list_url =
+	"https://api.smugmug.com/hack/rest/1.2.0/?"
+		"method=smugmug.images.get"
+		"&SessionID=%s&Heavy=1&AlbumID=%s&AlbumKey=%s";
+static char *smugmug_upload_url =
+	"http://upload.smugmug.com/%s";
 
 
 CURL *curl_init(void)
@@ -311,7 +324,8 @@ static int get_images(struct smug_curl_buffer *buffer, struct album *album)
 		original_url = find_value(temp, "OriginalURL", &temp);
 		if (!original_url)
 			break;
-		dbg("%s: %s: %s: %s: %s\n", id, key, name, caption, original_url);
+		dbg("%s: %s: %s: %s: %s\n",
+		    id, key, name, caption, original_url);
 		filename = zalloc(sizeof(*filename));
 		if (!filename)
 			break;
@@ -479,7 +493,8 @@ int upload_file(struct session *session, struct filename *filename,
 
 	if (!session->quiet) {
 		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
-		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, curl_progress_func);
+		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION,
+				 curl_progress_func);
 		curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, progress);
 	}
 
@@ -686,7 +701,7 @@ int smug_read_images(struct session *session, struct album *album)
 	return 0;
 }
 
-void smug_parse_configfile (struct session *session)
+void smug_parse_configfile(struct session *session)
 {
 	FILE *config_file;
 	char *line = NULL;
@@ -727,14 +742,14 @@ void smug_parse_configfile (struct session *session)
 			continue;
 
 		if (!strncasecmp(c, "email", 5) && (c[5] == '=')) {
-			c+=6;
+			c += 6;
 			if (c[0] != '\0')
-				email = strdup (c);
+				email = strdup(c);
 		} else if (!strncasecmp(c, "password", 8) &&
 			   (c[8] == '=')) {
 			c += 9;
 			if (c[0] != '\0')
-				password = strdup (c);
+				password = strdup(c);
 		}
 	} while (!feof(config_file));
 
@@ -746,5 +761,4 @@ void smug_parse_configfile (struct session *session)
 	/* Free buffer and close file.  */
 	free(line);
 	fclose(config_file);
-
 }
