@@ -127,7 +127,7 @@ void files_list_free(struct list_head *files)
 			free(filename->key);
 		if (filename->caption)
 			free(filename->caption);
-		if (filename->original_url);
+		if (filename->original_url)
 			free(filename->original_url);
 		free(filename);
 	}
