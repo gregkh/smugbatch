@@ -394,13 +394,15 @@ int generate_md5s(struct list_head *files)
 	return 0;
 }
 
-int curl_progress_func(struct progress *progress,
+// first parameter should be void * to pass curl's typechecks
+int curl_progress_func(void *arg_progress,
 		       double dltotal, double dlnow,
 		       double ultotal, double ulnow)
 {
 	int now;
 	int total;
 	int percent;
+	struct progress *progress = (struct progress *)arg_progress;
 
 	if (!progress)
 		return -EINVAL;

@@ -88,7 +88,7 @@ extern struct session *session_alloc(void);
 extern void session_free(struct session *session);
 extern size_t curl_callback(void *buffer, size_t size, size_t nmemb,
 			    void *userp);
-extern int curl_progress_func(struct progress *progress,
+extern int curl_progress_func(void *arg_progress,
 			      double dltotal, double dlnow,
 			      double ultotal, double ulnow);
 
