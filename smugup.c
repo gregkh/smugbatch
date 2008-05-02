@@ -77,7 +77,8 @@ int main(int argc, char *argv[], char *envp[])
 	smug_parse_configfile(session);
 
 	while (1) {
-		option = getopt_long_only(argc, argv, "dqe:p:a:h", options, NULL);
+		option = getopt_long_only(argc, argv, "dqe:p:a:h",
+					  options, NULL);
 		if (option == -1)
 			break;
 		switch (option) {
@@ -126,7 +127,6 @@ int main(int argc, char *argv[], char *envp[])
 	for (i = optind; i < argc; ++i) {
 		filename = zalloc(sizeof(*filename));
 		if (!filename)
-			// FIXME
 			return -ENOMEM;
 		filename->filename = strdup(argv[i]);
 		filename->basename = my_basename(filename->filename);
