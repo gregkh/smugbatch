@@ -63,6 +63,7 @@ int main(int argc, char *argv[], char *envp[])
 	int retval;
 	int option;
 	int found_album;
+	int i;
 
 	session = session_alloc();
 	if (!session) {
@@ -117,6 +118,17 @@ int main(int argc, char *argv[], char *envp[])
 		session->password = get_string_from_stdin();
 	}
 
+	/* build up a list of all filenames to be used here */
+	for (i = optind; i < argc; ++i) {
+		filename = zalloc(sizeof(*filename));
+		if (!filename)
+			return -ENOMEM;
+		filename->filename = strdup(argv[i]);
+		filename->basename = my_basename(filename->filename);
+		dbg("adding filename '%s'\n", argv[i]);
+		list_add_tail(&filename->entry, &session->files_download);
+	}
+
 	retval = smug_login(session);
 	if (retval) {
 		fprintf(stderr, "Can not login\n");
@@ -156,14 +168,15 @@ int main(int argc, char *argv[], char *envp[])
 		return -1;
 	}
 
-	/* print out the files */
-	fprintf(stdout, "ID        Key   Filename\n");
+	/* match up the file asked for with one in the album */
 	list_for_each_entry(filename, &album->files, entry) {
-		char *name = filename->filename;
-		if (strlen(name) == 0)
-			name = "<no name>";
-		fprintf(stdout, "%s %s %s\n", filename->id, filename->key,
-			name);
+		struct filename *temp;
+		list_for_each_entry(temp, &session->files_download, entry) {
+			if (strcmp(temp->filename, filename->filename) == 0) {
+				/* we found something to download */
+				smug_download(filename);
+			}
+		}
 	}
 
 	smug_logout(session);

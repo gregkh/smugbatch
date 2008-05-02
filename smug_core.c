@@ -591,11 +591,9 @@ int smug_logout(struct session *session)
 	if (!curl_buf)
 		return -ENOMEM;
 
-	dbg("1\n");
 	curl = curl_init();
 	if (!curl)
 		return -EINVAL;
-	dbg("2\n");
 
 	sprintf(url, smugmug_logout_url, session->session_id, api_key);
 	dbg("url = %s\n", url);
@@ -697,6 +695,64 @@ int smug_read_images(struct session *session, struct album *album)
 	curl_easy_cleanup(curl);
 	smug_curl_buffer_free(curl_buf);
 	return 0;
+}
+
+int smug_download(struct filename *filename)
+{
+	char url[1000];
+	struct smug_curl_buffer *curl_buf;
+	CURL *curl = NULL;
+	CURLcode res;
+	int retval;
+	struct progress *progress;
+
+	if (!filename)
+		return -EINVAL;
+
+	dbg("trying to download %s\n", filename->filename);
+
+	curl_buf = smug_curl_buffer_alloc();
+	if (!curl_buf)
+		return -ENOMEM;
+
+	dbg("1\n");
+	progress = zalloc(sizeof(*progress));
+	if (!progress)
+		return -ENOMEM;
+	progress->filename = filename->basename;
+	progress->upload = 0;
+	progress->position = 1;	// FIXME
+	progress->total = 1;	// FIXME
+
+	dbg("2\n");
+	curl = curl_init();
+	if (!curl)
+		return -EINVAL;
+	dbg("3\n");
+
+//	sprintf(url, "%s", filename->original_url);
+	dbg("url = %s\n", filename->original_url);
+	curl_easy_setopt(curl, CURLOPT_URL, filename->original_url);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_callback);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, curl_buf);
+
+	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
+	curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION,
+			 curl_progress_func);
+	curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, progress);
+
+	dbg("starting download...\n");
+	res = curl_easy_perform(curl);
+	if (res)
+		fprintf(stderr, "download error %d, exiting\n", res);
+
+//	if (!session->quiet) {
+		fprintf(stdout, "\n");
+		fflush(stdout);
+//	}
+	curl_easy_cleanup(curl);
+	smug_curl_buffer_free(curl_buf);
+	return (int)res;
 }
 
 void smug_parse_configfile(struct session *session)
