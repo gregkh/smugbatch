@@ -82,10 +82,14 @@ int main(int argc, char *argv[], char *envp[])
 			debug = 1;
 			break;
 		case 'e':
+			if (session->email)
+				free(session->email);
 			session->email = strdup(optarg);
 			dbg("email = %s\n", session->email);
 			break;
 		case 'p':
+			if (session->password)
+				free(session->password);
 			session->password = strdup(optarg);
 			dbg("password = %s\n", session->password);
 			break;
