@@ -9,7 +9,7 @@ BuildRequires:  libcurl-devel
 BuildRequires:  curl-devel
 %endif
 License:        GPL v2 only
-Version:	002
+Version:	003
 Release:	1
 AutoReqProv:    on
 Summary:	Tools for smugmug.com
@@ -33,7 +33,7 @@ make V=1 CFLAGS="$RPM_OPT_FLAGS"
 
 %install
 mkdir -p $RPM_BUILD_ROOT/usr/bin
-install smugup smugls $RPM_BUILD_ROOT/usr/bin
+install smugdown smugup smugls $RPM_BUILD_ROOT/usr/bin
 
 %files
 %defattr(-,root,root)
