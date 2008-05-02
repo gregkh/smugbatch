@@ -74,7 +74,8 @@ int main(int argc, char *argv[], char *envp[])
 	smug_parse_configfile(session);
 
 	while (1) {
-		option = getopt_long_only(argc, argv, "de:p:a:h", options, NULL);
+		option = getopt_long_only(argc, argv, "de:p:a:h",
+					  options, NULL);
 		if (option == -1)
 			break;
 		switch (option) {
