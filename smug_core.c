@@ -384,6 +384,7 @@ int generate_md5s(struct list_head *files)
 		if (err) {
 			printf("error generating md5 for %s, exiting\n",
 			       filename->filename);
+			fclose(fp);
 			return -err;
 		}
 		memcpy(filename->md5, md5, 16);
@@ -510,6 +511,7 @@ int upload_file(struct session *session, struct filename *filename,
 	}
 	curl_easy_cleanup(curl);
 	smug_curl_buffer_free(buffer);
+	free (progress);
 	return (int)res;
 }
 
@@ -752,6 +754,7 @@ int smug_download(struct filename *filename)
 //	}
 	curl_easy_cleanup(curl);
 	smug_curl_buffer_free(curl_buf);
+	free (progress);
 	return (int)res;
 }
 

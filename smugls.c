@@ -176,6 +176,7 @@ int main(int argc, char *argv[], char *envp[])
 			name);
 	}
 
+	free (album_title);
 	smug_logout(session);
 
 	session_free(session);
