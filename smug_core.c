@@ -395,7 +395,6 @@ int generate_md5s(struct list_head *files)
 	return 0;
 }
 
-// first parameter should be void * to pass curl's typechecks
 int curl_progress_func(void *arg_progress,
 		       double dltotal, double dlnow,
 		       double ultotal, double ulnow)
@@ -511,7 +510,7 @@ int upload_file(struct session *session, struct filename *filename,
 	}
 	curl_easy_cleanup(curl);
 	smug_curl_buffer_free(buffer);
-	free (progress);
+	free(progress);
 	return (int)res;
 }
 
@@ -732,7 +731,6 @@ int smug_download(struct filename *filename)
 		return -EINVAL;
 	dbg("3\n");
 
-//	sprintf(url, "%s", filename->original_url);
 	dbg("url = %s\n", filename->original_url);
 	curl_easy_setopt(curl, CURLOPT_URL, filename->original_url);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_callback);
@@ -754,7 +752,7 @@ int smug_download(struct filename *filename)
 //	}
 	curl_easy_cleanup(curl);
 	smug_curl_buffer_free(curl_buf);
-	free (progress);
+	free(progress);
 	return (int)res;
 }
 
