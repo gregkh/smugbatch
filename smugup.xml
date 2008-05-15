@@ -1,0 +1,112 @@
+<?xml version='1.0'?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+  "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
+
+<article>
+  <section>
+    <title>smugup</title>
+    <refentry>
+      <refentryinfo>
+        <title>smugup</title>
+        <date>May 2008</date>
+        <productname>smugup</productname>
+      </refentryinfo>
+
+      <refmeta>
+        <refentrytitle>smugup</refentrytitle>
+        <manvolnum>3</manvolnum>
+        <refmiscinfo class="version"></refmiscinfo>
+      </refmeta>
+
+      <refnamediv>
+        <refname>smugup</refname><refpurpose>upload files to a smugmug.com gallery</refpurpose>
+      </refnamediv>
+
+      <refsynopsisdiv>
+        <cmdsynopsis>
+          <command>smugup</command>
+          <arg><option>--email email@address</option></arg>
+          <arg><option>--password password</option></arg>
+          <arg><option>--album album</option></arg>
+	  <arg><option>--quiet</option></arg>
+          <arg><option>--debug</option></arg>
+          <arg><option>--version</option></arg>
+          <arg><option>--help</option></arg>
+        </cmdsynopsis>
+      </refsynopsisdiv>
+
+      <refsect1><title>DESCRIPTION</title>
+        <para>
+	  smugup uploads files to a specified smugmug.com gallery.  You can
+	  specify multiple files to upload on the command line.  If the email
+	  address or password is not specified, you will be prompted for it.
+	  If the album name is not specified, you will be promted with a list
+	  of the album names in this account and you can choose one from there.
+	</para>
+	<para>
+	  smugup supports both images and videos to be uploaded, as long as
+	  your smugmug.com account allows them.
+	 </para>
+      </refsect1>
+
+      <refsect1><title>OPTIONS</title>
+        <variablelist>
+          <varlistentry>
+            <term><option>--email email@address</option></term>
+            <listitem>
+              <para>
+	        Specify the email address of your smugmug.com account.
+	      </para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term><option>--password password</option></term>
+            <listitem>
+              <para>
+	        Specify the password of your smugmug.com account.
+              </para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term><option>--debug</option></term>
+            <listitem>
+              <para>Print a whole bunch of debugging messages to stdout.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term><option>--quiet</option></term>
+            <listitem>
+              <para>Run as quietly as possible, not printing anything to stdout.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term><option>--version</option></term>
+            <listitem>
+              <para>Print version number.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term><option>--help</option></term>
+            <listitem>
+              <para>Print help text.</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </refsect1>
+
+      <refsect1><title>AUTHOR</title>
+        <para>Written by Greg Kroah-Hartman <email>greg@kroah.com</email>.</para>
+      </refsect1>
+
+      <refsect1>
+        <title>SEE ALSO</title>
+        <para><citerefentry>
+            <refentrytitle>smugls</refentrytitle><manvolnum>3</manvolnum>
+          </citerefentry>, 
+          <citerefentry>
+            <refentrytitle>smugdown</refentrytitle><manvolnum>3</manvolnum>
+        </citerefentry></para>
+      </refsect1>
+    </refentry>
+  </section>
+</article>

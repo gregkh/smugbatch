@@ -35,6 +35,7 @@ GEN_HEADERS = \
 	smugbatch_version.h
 
 MAN_PAGES = \
+	smugup.3	\
 	smugls.3
 
 CROSS_COMPILE ?=
