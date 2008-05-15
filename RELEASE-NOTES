@@ -1,3 +1,12 @@
+smugbatch 003
+=============
+added ability to have a config file for password and user id
+ - Many thanks to Andreas for that
+added smugdown, seems to work for public albums, not for private yet
+--quiet option to all apps.
+smugls actually works properly now.
+rpm spec file thanks to Andreas
+
 smugbatch 002
 =============
 smugls now lists files in an album

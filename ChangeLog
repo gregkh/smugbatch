@@ -1,3 +1,39 @@
+Summary of changes from v002 to v003
+============================================
+
+Andreas Jaeger (7):
+      zalloc can be a macro
+      Add a spec file
+      Allow CFLAGS as argument to make
+      Handle fgets return value
+      Add config parsing
+      Prepare Spec file for version 3
+      Fix curl warning
+
+Greg Kroah-Hartman (21):
+      added zalloc for zeroed out malloc to make things easier
+      save off the original url of an image so we can download it if needed
+      smugup:  add --quiet option
+      s/which/Which/ when asking for an album name
+      add a header to the list of files and handle filenames with no name set
+      add file list to album and document struct album
+      put files that are in an album in the album instead of the session wide list
+      add smugdown.c (for downloading files)
+      add smugdown to .gitignore
+      smugdown: look at the proper list of files in the album
+      Add -O2 to CFLAGS
+      free the password and email if we have read it from the config file for smugup and smugdown
+      smug_core: fix bug with trailing ;
+      smug_core: coding style cleanups to make checkpatch happy
+      delete old smugbatch.c file
+      smugdown: fix coding style issues found by checkpatch
+      smugls: fix coding style issues found by checkpatch
+      smugup: fix coding style issues found by checkpatch
+      make the buffer really start at 0
+      smugdown: start to work on dowloading, don't have the correct url just yet...
+      fix up some compiler warnings in smug_core
+
+
 Summary of changes from v001 to v002
 ============================================
 
