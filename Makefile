@@ -16,7 +16,7 @@
 #
 #
 
-VERSION = 003
+VERSION = 004
 
 PROGRAM = smugup smugls smugdown
 
