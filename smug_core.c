@@ -701,11 +701,9 @@ int smug_read_images(struct session *session, struct album *album)
 
 int smug_download(struct filename *filename)
 {
-	char url[1000];
 	struct smug_curl_buffer *curl_buf;
 	CURL *curl = NULL;
 	CURLcode res;
-	int retval;
 	struct progress *progress;
 
 	if (!filename)
