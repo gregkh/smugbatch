@@ -42,8 +42,14 @@ static void display_help(void)
 	fprintf(stdout, "  --email email@address\n");
 	fprintf(stdout, "  --password password\n");
 	fprintf(stdout, "  --album album\n");
+	fprintf(stdout, "  --version\n");
 	fprintf(stdout, "  --debug\n");
 	fprintf(stdout, "  --help\n");
+}
+
+static void display_version(void)
+{
+	fprintf(stdout, "smugls - version %s\n", SMUGBATCH_VERSION);
 }
 
 int main(int argc, char *argv[], char *envp[])
@@ -53,6 +59,7 @@ int main(int argc, char *argv[], char *envp[])
 		{ "email", 1, NULL, 'e' },
 		{ "password", 1, NULL, 'p' },
 		{ "album", 1, NULL, 'a' },
+		{ "version", 0, NULL, 'v' },
 		{ "help", 0, NULL, 'h' },
 		{ }
 	};
@@ -98,6 +105,9 @@ int main(int argc, char *argv[], char *envp[])
 			album_title = strdup(optarg);
 			dbg("album_title = %s\n", album_title);
 			break;
+		case 'v':
+			display_version();
+			goto exit;
 		case 'h':
 			display_help();
 			goto exit;
