@@ -85,10 +85,10 @@
       <refsect1>
         <title>SEE ALSO</title>
         <para><citerefentry>
-            <refentrytitle>smugup</refentrytitle><manvolnum>7</manvolnum>
+            <refentrytitle>smugup</refentrytitle><manvolnum>3</manvolnum>
           </citerefentry>, 
           <citerefentry>
-            <refentrytitle>smugdown</refentrytitle><manvolnum>7</manvolnum>
+            <refentrytitle>smugdown</refentrytitle><manvolnum>3</manvolnum>
         </citerefentry></para>
       </refsect1>
     </refentry>
