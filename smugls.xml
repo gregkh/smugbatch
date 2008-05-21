@@ -14,7 +14,7 @@
 
       <refmeta>
         <refentrytitle>smugls</refentrytitle>
-        <manvolnum>3</manvolnum>
+        <manvolnum>1</manvolnum>
         <refmiscinfo class="version"></refmiscinfo>
       </refmeta>
 
@@ -85,10 +85,10 @@
       <refsect1>
         <title>SEE ALSO</title>
         <para><citerefentry>
-            <refentrytitle>smugup</refentrytitle><manvolnum>3</manvolnum>
+            <refentrytitle>smugup</refentrytitle><manvolnum>1</manvolnum>
           </citerefentry>, 
           <citerefentry>
-            <refentrytitle>smugdown</refentrytitle><manvolnum>3</manvolnum>
+            <refentrytitle>smugdown</refentrytitle><manvolnum>1</manvolnum>
         </citerefentry></para>
       </refsect1>
     </refentry>

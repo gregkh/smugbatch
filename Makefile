@@ -35,8 +35,8 @@ GEN_HEADERS = \
 	smugbatch_version.h
 
 MAN_PAGES = \
-	smugup.3	\
-	smugls.3
+	smugup.1	\
+	smugls.1
 
 CROSS_COMPILE ?=
 CC = $(CROSS_COMPILE)gcc
@@ -98,10 +98,10 @@ smugbatch_version.h:
 
 
 # man pages
-%.3: %.xml
+%.1: %.xml
 	$(E) "  XMLTO   " $@
 	$(Q) xmlto man $?
-.PRECIOUS: %.3
+.PRECIOUS: %.1
 
 clean:
 	$(E) "  CLEAN   "
