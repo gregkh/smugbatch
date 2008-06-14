@@ -399,26 +399,33 @@ int curl_progress_func(void *arg_progress,
 		       double dltotal, double dlnow,
 		       double ultotal, double ulnow)
 {
-	int now;
+	int bytes_now;
 	int total;
 	int percent;
+	int data_avg = 0;
 	struct progress *progress = (struct progress *)arg_progress;
 
 	if (!progress)
 		return -EINVAL;
 
+	time_t now = time(NULL);
+	if (progress->start == 0)
+		progress->start = now;
+	time_t timediff = now - progress->start;
 	if (progress->upload) {
-		now = (int)ulnow;
+		bytes_now = (int)ulnow;
 		total = (int)ultotal;
 		percent = (int)(ulnow*100.0/ultotal);
 	} else {
-		now = (int)dlnow;
+		bytes_now = (int)dlnow;
 		total = (int)dltotal;
 		percent = (int)(dlnow*100.0/dltotal);
 	}
-	fprintf(stdout, "      \r%d of %d: %s: %d of %d (%d%%)",
+	if (timediff > 0)
+		data_avg = (bytes_now / timediff / 1024);
+	fprintf(stdout, "      \r%d of %d: %s: %d of %d (%d%%) %d KiB/s",
 		progress->position, progress->total,
-		progress->filename, now, total, percent);
+		progress->filename, bytes_now, total, percent, data_avg);
 	return 0;
 }
 

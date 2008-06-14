@@ -71,6 +71,7 @@ struct progress {
 	int position;
 	int total;
 	int upload;
+	time_t start;
 };
 
 struct smug_curl_buffer {
