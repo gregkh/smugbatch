@@ -576,6 +576,13 @@ int smug_login(struct session *session)
 		return -EINVAL;
 	}
 
+	const char *rsp_res = find_value(curl_buf->data, "rsp stat",NULL);
+	if (strcmp(rsp_res, "fail") == 0) {
+	  const char * msg = find_value (curl_buf->data, "msg", NULL);
+	  printf ("error to login: %s\n", msg);
+
+	  return -EINVAL;
+	}
 	retval = get_session_id(curl_buf, session);
 	if (retval) {
 		fprintf(stderr, "session_id was not found\n");
