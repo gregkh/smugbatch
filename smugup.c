@@ -65,7 +65,6 @@ int main(int argc, char *argv[], char *envp[])
 	int retval;
 	int option;
 	int i;
-	int found_album;
 
 	session = session_alloc();
 	if (!session) {
@@ -152,27 +151,9 @@ int main(int argc, char *argv[], char *envp[])
 		fprintf(stderr, "Error calculating md5s\n");
 		return -1;
 	}
-
-	if (!album_title) {
-		fprintf(stdout, "Available albums:\n");
-		list_for_each_entry(album, &session->albums, entry)
-			fprintf(stdout, "\t%s\n", album->title);
-		fprintf(stdout, "\nwhich album id to upload to? ");
-		album_title = get_string_from_stdin();
-	}
-
-	found_album = 0;
-	list_for_each_entry(album, &session->albums, entry) {
-		if (strcmp(album->title, album_title) == 0) {
-			found_album = 1;
-			break;
-		}
-	}
-	if (!found_album) {
-		fprintf(stdout, "Album %s is not found\n", album_title);
+	album = select_album(album_title, session);
+	if (!album)
 		return -1;
-	}
-
 	retval = upload_files(session, album);
 	if (retval) {
 		fprintf(stderr, "Error uploading files\n");

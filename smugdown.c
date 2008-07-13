@@ -62,7 +62,6 @@ int main(int argc, char *argv[], char *envp[])
 	char *album_title = NULL;
 	int retval;
 	int option;
-	int found_album;
 	int i;
 
 	session = session_alloc();
@@ -141,26 +140,9 @@ int main(int argc, char *argv[], char *envp[])
 		fprintf(stderr, "Can not read albums\n");
 		return -1;
 	}
-
-	if (!album_title) {
-		fprintf(stdout, "Available albums:\n");
-		list_for_each_entry(album, &session->albums, entry)
-			fprintf(stdout, "\t%s\n", album->title);
-		fprintf(stdout, "\nWhich album id to list? ");
-		album_title = get_string_from_stdin();
-	}
-
-	found_album = 0;
-	list_for_each_entry(album, &session->albums, entry) {
-		if (strcmp(album->title, album_title) == 0) {
-			found_album = 1;
-			break;
-		}
-	}
-	if (!found_album) {
-		fprintf(stdout, "Album %s is not found\n", album_title);
+	album = select_album(album_title, session);
+	if (!album)
 		return -1;
-	}
 
 	retval = smug_read_images(session, album);
 	if (retval) {
