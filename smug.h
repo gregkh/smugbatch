@@ -35,6 +35,7 @@
  * id: the album id
  * key: the album key
  * title: the album title
+ * number: unique number for selection
  * files: the list of files currently in this album
  */
 struct album {
@@ -42,6 +43,7 @@ struct album {
 	char *id;
 	char *key;
 	char *title;
+	int number;
 	struct list_head files;
 };
 
@@ -108,6 +110,8 @@ extern CURL *curl_init(void);
 extern int upload_file(struct session *session, struct filename *filename,
 		       struct album *album, int position, int total);
 extern int upload_files(struct session *session, struct album *album);
+extern struct album *select_album(const char *album_title,
+				  struct session *session);
 extern int smug_login(struct session *session);
 extern int smug_logout(struct session *session);
 extern int generate_md5s(struct list_head *files);
