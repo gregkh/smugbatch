@@ -1,7 +1,7 @@
 /*
  * Copied from the Linux kernel source tree, version 2.6.25.
  *
- * Licensed under the GPLv2 only as part of the whole Linux kernel source.
+ * Licensed under the GPLv2 only, as part of the whole Linux kernel source.
  */
 
 #ifndef _LIST_H
