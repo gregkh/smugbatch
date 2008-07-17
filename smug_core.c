@@ -545,45 +545,47 @@ int upload_files(struct session *session, struct album *album)
 	return 0;
 }
 
-struct album *
-select_album (const char *album_title, struct session *session)
+struct album *select_album(const char *album_title, struct session *session)
 {
-  struct album *album;
-  int found_album;
+	struct album *album;
+	int found_album;
 
-  if (!album_title) {
-    int album_no;
-    fprintf(stdout, "Available albums:\n");
-    list_for_each_entry(album, &session->albums, entry)
-      fprintf(stdout, "\t%3d: %s\n", album->number, album->title);
-    fprintf(stdout, "\nPlease enter number of album to upload to: ");
-    album_no = atoi (get_string_from_stdin());
-    found_album = 0;
-    list_for_each_entry(album, &session->albums, entry) {
-      if (album->number == album_no) {
-	found_album = 1;
-	album_title = album->title;
-	break;
-      }
-    }
-    if (!found_album) {
-      fprintf(stdout, "Album number %d is not found\n", album_no);
-      return NULL;
-    }
-  } else {
-    found_album = 0;
-    list_for_each_entry(album, &session->albums, entry) {
-      if (strcmp(album->title, album_title) == 0) {
-	found_album = 1;
-	break;
-      }
-    }
-    if (!found_album) {
-      fprintf(stdout, "Album %s is not found\n", album_title);
-      return NULL;
-    }
-  }
-  return album;
+	if (!album_title) {
+		int album_no;
+		fprintf(stdout, "Available albums:\n");
+		list_for_each_entry(album, &session->albums, entry)
+			fprintf(stdout, "\t%3d: %s\n",
+				album->number, album->title);
+		fprintf(stdout, "\n");
+		fprintf(stdout, "Please enter number of album to upload to: ");
+		album_no = atoi(get_string_from_stdin());
+		found_album = 0;
+		list_for_each_entry(album, &session->albums, entry) {
+			if (album->number == album_no) {
+				found_album = 1;
+				album_title = album->title;
+				break;
+			}
+		}
+		if (!found_album) {
+			fprintf(stdout, "Album number %d is not found\n",
+				album_no);
+			return NULL;
+		}
+	} else {
+		found_album = 0;
+		list_for_each_entry(album, &session->albums, entry) {
+			if (strcmp(album->title, album_title) == 0) {
+				found_album = 1;
+				break;
+			}
+		}
+		if (!found_album) {
+			fprintf(stdout, "Album %s is not found\n", album_title);
+			return NULL;
+			}
+	}
+	return album;
 }
 
 int smug_login(struct session *session)
@@ -620,12 +622,12 @@ int smug_login(struct session *session)
 		return -EINVAL;
 	}
 
-	const char *rsp_res = find_value(curl_buf->data, "rsp stat",NULL);
+	const char *rsp_res = find_value(curl_buf->data, "rsp stat", NULL);
 	if (strcmp(rsp_res, "fail") == 0) {
-	  const char * msg = find_value (curl_buf->data, "msg", NULL);
-	  printf ("error to login: %s\n", msg);
+		const char *msg = find_value(curl_buf->data, "msg", NULL);
+		printf("error to login: %s\n", msg);
 
-	  return -EINVAL;
+		return -EINVAL;
 	}
 	retval = get_session_id(curl_buf, session);
 	if (retval) {
