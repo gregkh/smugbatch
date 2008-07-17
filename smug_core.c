@@ -729,8 +729,8 @@ int smug_download(struct filename *filename)
 		return -ENOMEM;
 	progress->filename = filename->basename;
 	progress->upload = 0;
-	progress->position = 1;	// FIXME
-	progress->total = 1;	// FIXME
+	progress->position = 1;	/* FIXME */
+	progress->total = 1;	/* FIXME */
 
 	dbg("2\n");
 	curl = curl_init();
@@ -753,10 +753,10 @@ int smug_download(struct filename *filename)
 	if (res)
 		fprintf(stderr, "download error %d, exiting\n", res);
 
-//	if (!session->quiet) {
+/*	if (!session->quiet) { */
 		fprintf(stdout, "\n");
 		fflush(stdout);
-//	}
+/*	} */
 	curl_easy_cleanup(curl);
 	smug_curl_buffer_free(curl_buf);
 	free(progress);
