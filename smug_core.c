@@ -93,6 +93,12 @@ char *my_basename(char *name)
 	return strdup(temp);
 }
 
+/**
+ * get_string_from_stdin - reads a string from standard input
+ *
+ * returns a pointer to a buffer that must be later freed by the caller
+ * with a call to free().
+ */
 char *get_string_from_stdin(void)
 {
 	char *temp;
@@ -146,6 +152,21 @@ void files_list_free(struct list_head *files)
 	}
 }
 
+/**
+ * find_value - attempts to find a value within a string
+ *
+ * Works a lot like strstr() except we are searching through a
+ * "string = value" type buffer.  The value that the needle is set
+ * to is then copied into a new buffer and returned.  This buffer must be
+ * later freed with a call to free().
+ *
+ * This lets us do a "poor mans" xml parser without really having to parse
+ * xml.  We just rely on the fact that the tag values come in a specific
+ * order.  Yeah, it's cheating, but for now, we seem to get away with it.
+ *
+ * Returns NULL if the needle is not found in the haystack, or if we are
+ * unable to allocate the needed memory buffer.
+ */
 char *find_value(const char *haystack, const char *needle, char **new_pos)
 {
 	char *location;
@@ -175,6 +196,12 @@ char *find_value(const char *haystack, const char *needle, char **new_pos)
 	return value;
 }
 
+/**
+ * smug_curl_buffer_alloc- allocates a struct smug_curl_buffer
+ *
+ * returns a pointer to a struct smug_curl_buffer that must be later freed
+ * with a call to smug_curl_buffer_free()
+ */
 struct smug_curl_buffer *smug_curl_buffer_alloc(void)
 {
 	struct smug_curl_buffer *buffer;
@@ -202,6 +229,12 @@ void smug_curl_buffer_free(struct smug_curl_buffer *buffer)
 	free(buffer);
 }
 
+/**
+ * session_alloc - creates a struct session
+ *
+ * returns a pointer to a struct session that must be later freed with a
+ * call to smug_curl_buffer_free()
+ */
 struct session *session_alloc(void)
 {
 	struct session *session;
