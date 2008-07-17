@@ -25,7 +25,7 @@
 #define dbg(format, arg...)						\
 	do {								\
 		if (debug)						\
-			printf("%s: " format , __func__ , ## arg );	\
+			printf("%s: " format , __func__ , ## arg);	\
 	} while (0)
 
 /**
