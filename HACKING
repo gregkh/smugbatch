@@ -20,3 +20,11 @@ To test this, using git, generate a patch:
 Then run checkpatch.pl against this patch:
 	./scripts/checkpatch.pl --no-tree my_patch
 
+
+Please run your modifications through valgrind if possible.  A number of
+functions within smug_core.c return strings that must be freed by the caller.
+Hopefully most of these functions are properly marked, but valgrind can easily
+check this to ensure you are properly cleaning up.
+
+It is safe to ignore the valgrind errors in the curl and ssl libraries, we
+can't do anything about those at this time.
