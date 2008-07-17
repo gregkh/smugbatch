@@ -1,0 +1,12 @@
+smugbatch - a collection of command line tools for interacting with
+	    smugmug.com
+
+This collection of tools allows you to list, upload, and download images
+from smugmug.com from a command line.  They are for use with Linux systems
+and hopefully should be able to be easily called by other tools to interact
+with smugmug.com where needed.
+
+Any questions, contact Greg Kroah-Hartman <greg@kroah.com>
+
+For tips on helping out with development of the codebase, see the file,
+HACKING.
