@@ -1,3 +1,37 @@
+Summary of changes from v003 to v004
+============================================
+
+Andreas Jaeger (6):
+      Free memory leaks
+      smugbatch.spec: Prepare for 004
+      Add upload/download speed in KiB/s.
+      Error handling for login:
+      Add select_album function
+      Use select_album
+
+Greg Kroah-Hartman (21):
+      move to 004 for Makefile to not get confused
+      add smugls.3 man file
+      fix section in smugls.xml
+      add smugup.3
+      add --version to smugls
+      some coding style fixups
+      man pages should be in 1, not 3
+      fix comment in list.h to make a bit more sense
+      add scripts/checkpatch.pl
+      list.h - checkpatch.pl fixups
+      smug.h - checkpatch.pl fixups
+      Merge branch 'master' of /home/greg/src/smugbatch//
+      smug_core.c - checkpatch.pl fixups
+      Merge branch 'master' of /home/greg/src/smugbatch//
+      smug_core.c - fix up coding style issues
+      add HACKING file to help explain the coding style and how to check for it.
+      added README file
+      fix memory leak in select_album()
+      fix memory leak in smug_login()
+      add valgrind info to HACKING
+      document some of the calls in smug_core.c to show
+
 Summary of changes from v002 to v003
 ============================================
 

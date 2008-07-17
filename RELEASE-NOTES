@@ -1,3 +1,8 @@
+smugbatch 004
+=============
+lots of minor fixes, most thanks to Andreas
+transmission units is now sane, no one cares about bytes.
+
 smugbatch 003
 =============
 added ability to have a config file for password and user id
