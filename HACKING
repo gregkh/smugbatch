@@ -28,3 +28,18 @@ check this to ensure you are properly cleaning up.
 
 It is safe to ignore the valgrind errors in the curl and ssl libraries, we
 can't do anything about those at this time.
+
+Basic usage with github:
+* create a fork of gregkh/smugbatch at github.com
+* Check it out locally: git clone git@github.com:ajaeger/smugbatch.git
+* switch to the directory: cd smugbatch/
+* add Greg's git as remote repository:
+  git remote add smugcore git://github.com/gregkh/smugbatch.git
+* Fetch it:
+  git fetch smugcore
+* This will create a branch, so merge it back:
+  git checkout master
+  git merge smugcore/master
+* Sync merge back:
+  git commit -a -m "Sync to fork master" 
+
