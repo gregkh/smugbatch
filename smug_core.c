@@ -549,16 +549,21 @@ struct album *select_album(const char *album_title, struct session *session)
 {
 	struct album *album;
 	int found_album;
+	char *string;
+	int album_no = 0;
 
 	if (!album_title) {
-		int album_no;
 		fprintf(stdout, "Available albums:\n");
 		list_for_each_entry(album, &session->albums, entry)
 			fprintf(stdout, "\t%3d: %s\n",
 				album->number, album->title);
 		fprintf(stdout, "\n");
 		fprintf(stdout, "Please enter number of album to upload to: ");
-		album_no = atoi(get_string_from_stdin());
+		string = get_string_from_stdin();
+		if (string) {
+			album_no = atoi(string);
+			free(string);
+		}
 		found_album = 0;
 		list_for_each_entry(album, &session->albums, entry) {
 			if (album->number == album_no) {
