@@ -31,6 +31,9 @@ SMUG_OBJS = \
 	smugdown.o	\
 	md5.o
 
+HEADERS = \
+	smug.h \
+
 GEN_HEADERS = \
 	smugbatch_version.h
 

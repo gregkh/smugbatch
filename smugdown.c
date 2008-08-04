@@ -140,7 +140,7 @@ int main(int argc, char *argv[], char *envp[])
 		fprintf(stderr, "Can not read albums\n");
 		return -1;
 	}
-	album = select_album(album_title, session);
+	album = select_album(album_title, NULL, NULL, session);
 	if (!album)
 		return -1;
 

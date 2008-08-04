@@ -41,7 +41,8 @@ static void display_help(void)
 	fprintf(stdout, "options are:\n");
 	fprintf(stdout, "  --email email@address\n");
 	fprintf(stdout, "  --password password\n");
-	fprintf(stdout, "  --album album\n");
+	fprintf(stdout, "  --album album [ --category category"
+				" --settings quicksettings ]\n");
 	fprintf(stdout, "  --quiet\n");
 	fprintf(stdout, "  --debug\n");
 	fprintf(stdout, "  --help\n");
@@ -54,6 +55,8 @@ int main(int argc, char *argv[], char *envp[])
 		{ "email", 1, NULL, 'e' },
 		{ "password", 1, NULL, 'p' },
 		{ "album", 1, NULL, 'a' },
+		{ "category", 1, NULL, 'c' },
+		{ "settings", 1, NULL, 's' },
 		{ "help", 0, NULL, 'h' },
 		{ "quiet", 0, NULL, 'q' },
 		{ }
@@ -62,6 +65,8 @@ int main(int argc, char *argv[], char *envp[])
 	struct session *session;
 	struct album *album;
 	char *album_title = NULL;
+	char *category_title = NULL;
+	char *quicksettings_name = NULL;
 	int retval;
 	int option;
 	int i;
@@ -76,7 +81,7 @@ int main(int argc, char *argv[], char *envp[])
 	smug_parse_configfile(session);
 
 	while (1) {
-		option = getopt_long_only(argc, argv, "dqe:p:a:h",
+		option = getopt_long_only(argc, argv, "dqe:p:a:c:s:h",
 					  options, NULL);
 		if (option == -1)
 			break;
@@ -100,6 +105,14 @@ int main(int argc, char *argv[], char *envp[])
 			album_title = strdup(optarg);
 			dbg("album_title = %s\n", album_title);
 			break;
+		case 'c':
+			category_title = strdup(optarg);
+			dbg("category_title = %s\n", category_title);
+			break;
+		case 's':
+			quicksettings_name = strdup(optarg);
+			dbg("quicksettings_name = %s\n", quicksettings_name);
+			break;
 		case 'q':
 			session->quiet = 1;
 			break;
@@ -112,6 +125,12 @@ int main(int argc, char *argv[], char *envp[])
 		}
 	}
 
+	if ((category_title || quicksettings_name) && !album_title) {
+		fprintf(stdout, "Category and Settings requires Title.");
+		display_help();
+		goto exit;
+	}
+
 	if (!session->email) {
 		fprintf(stdout, "Enter smugmug.com email address: ");
 		session->email = get_string_from_stdin();
@@ -121,6 +140,7 @@ int main(int argc, char *argv[], char *envp[])
 		fprintf(stdout, "Enter smugmug.com password: ");
 		session->password = get_string_from_stdin();
 	}
+
 
 	/* build up a list of all filenames to be used here */
 	for (i = optind; i < argc; ++i) {
@@ -151,7 +171,8 @@ int main(int argc, char *argv[], char *envp[])
 		fprintf(stderr, "Error calculating md5s\n");
 		return -1;
 	}
-	album = select_album(album_title, session);
+	album = select_album(album_title, category_title, quicksettings_name,
+			     session);
 	if (!album)
 		return -1;
 	retval = upload_files(session, album);
