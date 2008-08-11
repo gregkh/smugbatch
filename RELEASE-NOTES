@@ -1,3 +1,8 @@
+smugbatch 005
+=============
+Ability to create the album to upload to if it is not already present
+ - many thanks to troy for this feature
+
 smugbatch 004
 =============
 lots of minor fixes, most thanks to Andreas
