@@ -111,10 +111,18 @@ extern int upload_file(struct session *session, struct filename *filename,
 		       struct album *album, int position, int total);
 extern int upload_files(struct session *session, struct album *album);
 extern struct album *select_album(const char *album_title,
+				  const char *category_title,
+				  const char *quicksettings_name,
 				  struct session *session);
 extern int smug_login(struct session *session);
 extern int smug_logout(struct session *session);
 extern int generate_md5s(struct list_head *files);
+extern char *smug_get_category_id(const char *category_title,
+				  struct session *session);
+extern struct album *smug_create_album(const char *album_title,
+				       const char *category_title,
+				       const char *quicksettings_name,
+				       struct session *session);
 extern int smug_get_albums(struct session *session);
 extern int smug_read_images(struct session *session, struct album *album);
 extern void smug_parse_configfile(struct session *session);

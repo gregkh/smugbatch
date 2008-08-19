@@ -27,7 +27,7 @@
           <command>smugup</command>
           <arg><option>--email email@address</option></arg>
           <arg><option>--password password</option></arg>
-          <arg><option>--album album</option></arg>
+          <arg>--album album<arg>--category category</arg><arg>--settings quicksettings</arg></arg>
 	  <arg><option>--quiet</option></arg>
           <arg><option>--debug</option></arg>
           <arg><option>--version</option></arg>
@@ -64,6 +64,37 @@
             <listitem>
               <para>
 	        Specify the password of your smugmug.com account.
+              </para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term><option>--album album</option></term>
+            <listitem>
+              <para>
+	        Specify the target album.
+		If ommited, the user will be prompted with a list.
+		If the album and category are both specified,
+		the album will be created if necessary.
+              </para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term><option>--category category</option></term>
+            <listitem>
+              <para>
+	        Specify the target category
+		for <emphasis>album creation</emphasis>.
+		(See <option>--album</option>.)
+              </para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term><option>--settings quicksettings</option></term>
+            <listitem>
+              <para>
+	        Specify the target quicksettings
+		for <emphasis>album creation</emphasis>.
+		(See <option>--album</option>.)
               </para>
             </listitem>
           </varlistentry>

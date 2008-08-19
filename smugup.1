@@ -1,6 +1,6 @@
 .\"     Title: smugup
 .\"    Author: 
-.\" Generator: DocBook XSL Stylesheets v1.73.2 <http://docbook.sf.net/>
+.\" Generator: DocBook XSL Stylesheets v1.71.0 <http://docbook.sf.net/>
 .\"      Date: May 2008
 .\"    Manual: smugup
 .\"    Source: smugup
@@ -11,50 +11,69 @@
 .\" disable justification (adjust text to left margin only)
 .ad l
 .SH "NAME"
-smugup - upload files to a smugmug.com gallery
+smugup \- upload files to a smugmug.com gallery
 .SH "SYNOPSIS"
 .HP 7
-\fBsmugup\fR [\fB\-\-email\ email@address\fR] [\fB\-\-password\ password\fR] [\fB\-\-album\ album\fR] [\fB\-\-quiet\fR] [\fB\-\-debug\fR] [\fB\-\-version\fR] [\fB\-\-help\fR]
+\fBsmugup\fR [\fB\-\-email\ email@address\fR] [\fB\-\-password\ password\fR] [\-\-album\ album\ [\-\-category\ category]\ [\-\-settings\ quicksettings]] [\fB\-\-quiet\fR] [\fB\-\-debug\fR] [\fB\-\-version\fR] [\fB\-\-help\fR]
 .SH "DESCRIPTION"
 .PP
-smugup uploads files to a specified smugmug\.com gallery\. You can specify multiple files to upload on the command line\. If the email address or password is not specified, you will be prompted for it\. If the album name is not specified, you will be promted with a list of the album names in this account and you can choose one from there\.
+smugup uploads files to a specified smugmug.com gallery. You can specify multiple files to upload on the command line. If the email address or password is not specified, you will be prompted for it. If the album name is not specified, you will be promted with a list of the album names in this account and you can choose one from there.
 .PP
-smugup supports both images and videos to be uploaded, as long as your smugmug\.com account allows them\.
+smugup supports both images and videos to be uploaded, as long as your smugmug.com account allows them.
 .SH "OPTIONS"
 .PP
 \fB\-\-email email@address\fR
-.RS 4
-Specify the email address of your smugmug\.com account\.
+.RS 3n
+Specify the email address of your smugmug.com account.
 .RE
 .PP
 \fB\-\-password password\fR
-.RS 4
-Specify the password of your smugmug\.com account\.
+.RS 3n
+Specify the password of your smugmug.com account.
+.RE
+.PP
+\fB\-\-album album\fR
+.RS 3n
+Specify the target album. If ommited, the user will be prompted with a list. If the album and category are both specified, the album will be created if necessary.
+.RE
+.PP
+\fB\-\-category category\fR
+.RS 3n
+Specify the target category for
+\fIalbum creation\fR. (See
+\fB\-\-album\fR.)
+.RE
+.PP
+\fB\-\-settings quicksettings\fR
+.RS 3n
+Specify the target quicksettings for
+\fIalbum creation\fR. (See
+\fB\-\-album\fR.)
 .RE
 .PP
 \fB\-\-debug\fR
-.RS 4
-Print a whole bunch of debugging messages to stdout\.
+.RS 3n
+Print a whole bunch of debugging messages to stdout.
 .RE
 .PP
 \fB\-\-quiet\fR
-.RS 4
-Run as quietly as possible, not printing anything to stdout\.
+.RS 3n
+Run as quietly as possible, not printing anything to stdout.
 .RE
 .PP
 \fB\-\-version\fR
-.RS 4
-Print version number\.
+.RS 3n
+Print version number.
 .RE
 .PP
 \fB\-\-help\fR
-.RS 4
-Print help text\.
+.RS 3n
+Print help text.
 .RE
 .SH "AUTHOR"
 .PP
 Written by Greg Kroah\-Hartman
-<greg@kroah\.com>\.
+<greg@kroah.com>.
 .SH "SEE ALSO"
 .PP
 \fBsmugls\fR(1),

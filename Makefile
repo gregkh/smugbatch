@@ -16,7 +16,7 @@
 #
 #
 
-VERSION = 004
+VERSION = 005
 
 PROGRAM = smugup smugls smugdown
 
@@ -30,6 +30,9 @@ SMUG_OBJS = \
 	smugls.o	\
 	smugdown.o	\
 	md5.o
+
+HEADERS = \
+	smug.h \
 
 GEN_HEADERS = \
 	smugbatch_version.h
