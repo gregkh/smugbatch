@@ -41,31 +41,31 @@ static char *user_agent = "smugbatch/"SMUGBATCH_VERSION" (greg@kroah.com)";
 static char *session_id_tag = "Session id";
 
 static char *smugmug_album_list_url =
-	"https://api.smugmug.com/hack/rest/1.2.0/?"
+	"https://secure.smugmug.com/services/api/rest/1.2.2/?"
 		"method=smugmug.albums.get"
 		"&SessionID=%s&APIKey=%s";
 static char *smugmug_album_create_url =
-	"https://api.smugmug.com/hack/rest/1.2.0/?"
+	"https://secure.smugmug.com/services/api/rest/1.2.2/?"
 		"method=smugmug.albums.create"
 		"&SessionID=%s&Title=%s&CategoryID=%s&AlbumTemplateID=%s";
 static char *smugmug_category_list_url =
-	"https://api.smugmug.com/hack/rest/1.2.0/?"
+	"https://secure.smugmug.com/services/api/rest/1.2.2/?"
 		"method=smugmug.categories.get"
 		"&SessionID=%s";
 static char *smugmug_quicksettings_list_url =
-	"https://api.smugmug.com/hack/rest/1.2.0/?"
+	"https://secure.smugmug.com/services/api/rest/1.2.2/?"
 		"method=smugmug.albumtemplates.get"
 		"&SessionID=%s";
 static char *smugmug_login_url =
-	"https://api.smugmug.com/hack/rest/1.2.0/?"
+	"https://secure.smugmug.com/services/api/rest/1.2.2/?"
 		"method=smugmug.login.withPassword"
 		"&EmailAddress=%s&Password=%s&APIKey=%s";
 static char *smugmug_logout_url =
-	"https://api.smugmug.com/hack/rest/1.2.0/?"
+	"https://secure.smugmug.com/services/api/rest/1.2.2/?"
 		"method=smugmug.logout"
 		"&SessionID=%s&APIKey=%s";
 static char *smugmug_image_list_url =
-	"https://api.smugmug.com/hack/rest/1.2.0/?"
+	"https://secure.smugmug.com/services/api/rest/1.2.2/?"
 		"method=smugmug.images.get"
 		"&SessionID=%s&Heavy=1&AlbumID=%s&AlbumKey=%s";
 static char *smugmug_upload_url =
@@ -575,7 +575,7 @@ int upload_file(struct session *session, struct filename *filename,
 	sprintf(buf, "Content-MD5: %s", md5_string);
 	dbg("%s\n", buf);
 	headers = curl_slist_append(headers, buf);
-	headers = curl_slist_append(headers, "X-Smug-Version: 1.2.0");
+	headers = curl_slist_append(headers, "X-Smug-Version: 1.2.2");
 	headers = curl_slist_append(headers, "X-Smug-ResponseType: REST");
 	sprintf(buf, "X-Smug-SessionID: %s", session->session_id);
 	dbg("%s\n", buf);
