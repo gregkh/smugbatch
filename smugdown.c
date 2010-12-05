@@ -156,7 +156,7 @@ int main(int argc, char *argv[], char *envp[])
 		list_for_each_entry(temp, &session->files_download, entry) {
 			if (strcmp(temp->filename, filename->filename) == 0) {
 				/* we found something to download */
-				smug_download(filename);
+				smug_download(session, filename);
 			}
 		}
 	}

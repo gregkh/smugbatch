@@ -62,6 +62,7 @@ struct session {
 	char *password;
 	char *email;
 	char *session_id;
+	char *su_cookie;
 	struct list_head albums;
 	struct list_head files_upload;
 	struct list_head files_download;
@@ -126,7 +127,7 @@ extern struct album *smug_create_album(const char *album_title,
 extern int smug_get_albums(struct session *session);
 extern int smug_read_images(struct session *session, struct album *album);
 extern void smug_parse_configfile(struct session *session);
-extern int smug_download(struct filename *filename);
+extern int smug_download(struct session *session, struct filename *filename);
 
 extern int debug;
 

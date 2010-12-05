@@ -89,6 +89,47 @@ CURL *curl_init(void)
 	return curl;
 }
 
+static char *get_su_cookie(CURL *curl)
+{
+	CURLcode res;
+	struct curl_slist *cookies;
+	struct curl_slist *nc;
+	char *cookie = NULL;
+
+	res = curl_easy_getinfo(curl, CURLINFO_COOKIELIST, &cookies);
+	if (res != CURLE_OK) {
+		fprintf(stderr, "Curl curl_easy_getinfo failed: %s\n",
+			curl_easy_strerror(res));
+		exit(1);
+	}
+	nc = cookies;
+	while (nc) {
+		char domain[50], p1[50], p2[50], p3[50], name[50], value[50];
+		long unsigned int t;
+		int res;
+
+		/* #HttpOnly_.smugmug.com\tTRUE\t/\tFALSE\t0\tSMSESS\t99363be4c3ceb3f153f875216539524a */
+		res =
+		    sscanf(nc->data, "%s\t%s\t%s\t%s\t%lu\t%s\t%s", domain, p1,
+			   p2, p3, &t, name, value);
+		if (res == 7 && strcmp(name, "_su") == 0) {
+			cookie = valloc(strlen(value) + 1 + 4);
+			sprintf(cookie, "_su=%s", value);
+		}
+		nc = nc->next;
+	}
+	curl_slist_free_all(cookies);
+	return cookie;
+}
+
+static void curl_set_cookie(CURL *curl, const char *cookie)
+{
+	if (cookie == NULL)
+		return;
+
+	curl_easy_setopt(curl, CURLOPT_COOKIE, cookie);
+}
+
 
 char *my_basename(char *name)
 {
@@ -252,6 +293,7 @@ struct session *session_alloc(void)
 	struct session *session;
 
 	session = zalloc(sizeof(*session));
+	session->su_cookie = NULL;
 	if (!session)
 		return NULL;
 	INIT_LIST_HEAD(&session->albums);
@@ -518,6 +560,7 @@ int upload_file(struct session *session, struct filename *filename,
 	dbg("%s is %d bytes big\n", filename->filename, (int)file_info.st_size);
 
 	sprintf(url, smugmug_upload_url, filename->basename);
+	curl_set_cookie(curl, session->su_cookie);
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_callback);
@@ -669,7 +712,7 @@ int smug_login(struct session *session)
 	dbg("url = %s\n", url);
 
 	curl_easy_setopt(curl, CURLOPT_URL, url);
-
+	curl_easy_setopt(curl, CURLOPT_COOKIEFILE, "");
 	/* log into smugmug */
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_callback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, curl_buf);
@@ -678,7 +721,7 @@ int smug_login(struct session *session)
 		printf("error(%d) trying to login\n", res);
 		return -EINVAL;
 	}
-
+	session->su_cookie = get_su_cookie(curl);
 	char *rsp_stat = find_value(curl_buf->data, "rsp stat", NULL);
 	if (!rsp_stat)
 		return -EINVAL;
@@ -721,6 +764,7 @@ int smug_logout(struct session *session)
 	sprintf(url, smugmug_logout_url, session->session_id, api_key);
 	dbg("url = %s\n", url);
 
+	curl_set_cookie(curl, session->su_cookie);
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_callback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, curl_buf);
@@ -756,6 +800,8 @@ int smug_get_albums(struct session *session)
 
 	sprintf(url, smugmug_album_list_url, session->session_id, api_key);
 	dbg("url = %s\n", url);
+
+	curl_set_cookie(curl, session->su_cookie);
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_callback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, curl_buf);
@@ -803,6 +849,7 @@ char *smug_get_quicksettings_id(const char *qs_name, struct session *session)
 
 	sprintf(url, smugmug_quicksettings_list_url, session->session_id);
 	dbg("url = %s\n", url);
+	curl_set_cookie(curl, session->su_cookie);
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_callback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, curl_buf);
@@ -880,6 +927,7 @@ char *smug_get_category_id(const char *category_title, struct session *session)
 
 	sprintf(url, smugmug_category_list_url, session->session_id);
 	dbg("url = %s\n", url);
+	curl_set_cookie(curl, session->su_cookie);
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_callback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, curl_buf);
@@ -975,6 +1023,7 @@ struct album *smug_create_album(const char *album_title,
 	free(category_id);
 	free(qs_id);
 
+	curl_set_cookie(curl, session->su_cookie);
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_callback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, curl_buf);
@@ -1052,6 +1101,8 @@ int smug_read_images(struct session *session, struct album *album)
 	sprintf(url, smugmug_image_list_url, session->session_id,
 		album->id, album->key);
 	dbg("url = %s\n", url);
+
+	curl_set_cookie(curl, session->su_cookie);
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_callback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, curl_buf);
@@ -1073,7 +1124,7 @@ int smug_read_images(struct session *session, struct album *album)
 	return 0;
 }
 
-int smug_download(struct filename *filename)
+int smug_download(struct session *session, struct filename *filename)
 {
 	struct smug_curl_buffer *curl_buf;
 	CURL *curl = NULL;
@@ -1105,6 +1156,7 @@ int smug_download(struct filename *filename)
 	dbg("3\n");
 
 	dbg("url = %s\n", filename->original_url);
+	curl_set_cookie(curl, session->su_cookie);
 	curl_easy_setopt(curl, CURLOPT_URL, filename->original_url);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_callback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, curl_buf);
