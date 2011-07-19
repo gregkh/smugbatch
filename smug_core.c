@@ -293,9 +293,9 @@ struct session *session_alloc(void)
 	struct session *session;
 
 	session = zalloc(sizeof(*session));
-	session->su_cookie = NULL;
 	if (!session)
 		return NULL;
+	session->su_cookie = NULL;
 	INIT_LIST_HEAD(&session->albums);
 	INIT_LIST_HEAD(&session->files_upload);
 	INIT_LIST_HEAD(&session->files_download);
