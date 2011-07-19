@@ -1,3 +1,8 @@
+smugbatch 006
+=============
+1.2.2 api updates, thanks to Andreas Jaeger
+minor bugfixes on error paths thanks to Jonathan Neuschäfer
+
 smugbatch 005
 =============
 Ability to create the album to upload to if it is not already present

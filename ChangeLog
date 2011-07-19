@@ -1,3 +1,16 @@
+Summary of changes from v005 to v006
+============================================
+
+Andreas Jaeger (2):
+      Get smugbatch to work properly with the 1.2.2 API
+      Use the 1.2.2 api properly
+
+Jonathan Neuschäfer (4):
+      HACKING: fix a typo ("smubatch")
+      session_alloc: fix a null-pointer dereference
+      smug_core: fix a memory leak in get_string_from_stdin
+      fix memory leaks found by cppcheck
+
 Summary of changes from v004 to v005
 ============================================
 
