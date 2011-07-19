@@ -541,23 +541,32 @@ int upload_file(struct session *session, struct filename *filename,
 		return -ENOMEM;
 
 	progress = zalloc(sizeof(*progress));
-	if (!progress)
+	if (!progress) {
+		smug_curl_buffer_free(buffer);
 		return -ENOMEM;
+	}
 	progress->filename = filename->basename;
 	progress->upload = 1;
 	progress->position = position;
 	progress->total = total;
 
 	curl = curl_init();
-	if (!curl)
+	if (!curl) {
+		free(progress);
+		smug_curl_buffer_free(buffer);
 		return -EINVAL;
+	}
 
 	file_handle = open(filename->filename, O_RDONLY);
 	fstat(file_handle, &file_info);
 	close(file_handle);
 	fd = fopen(filename->filename, "rb");
-	if (!fd)
+	if (!fd) {
+		curl_easy_cleanup(curl);
+		free(progress);
+		smug_curl_buffer_free(buffer);
 		return -EINVAL;
+	}
 
 	dbg("%s is %d bytes big\n", filename->filename, (int)file_info.st_size);
 
@@ -760,8 +769,10 @@ int smug_logout(struct session *session)
 		return -ENOMEM;
 
 	curl = curl_init();
-	if (!curl)
+	if (!curl) {
+		smug_curl_buffer_free(curl_buf);
 		return -EINVAL;
+	}
 
 	sprintf(url, smugmug_logout_url, session->session_id, api_key);
 	dbg("url = %s\n", url);
@@ -773,6 +784,8 @@ int smug_logout(struct session *session)
 	res = curl_easy_perform(curl);
 	if (res) {
 		fprintf(stderr, "error(%d) trying to logout\n", res);
+		curl_easy_cleanup(curl);
+		smug_curl_buffer_free(curl_buf);
 		return -EINVAL;
 	}
 
@@ -797,8 +810,10 @@ int smug_get_albums(struct session *session)
 		return -ENOMEM;
 
 	curl = curl_init();
-	if (!curl)
+	if (!curl) {
+		smug_curl_buffer_free(curl_buf);
 		return -EINVAL;
+	}
 
 	sprintf(url, smugmug_album_list_url, session->session_id, api_key);
 	dbg("url = %s\n", url);
@@ -811,12 +826,16 @@ int smug_get_albums(struct session *session)
 	if (res) {
 		fprintf(stderr, "error(%d) trying to read list of albums\n",
 			res);
+		curl_easy_cleanup(curl);
+		smug_curl_buffer_free(curl_buf);
 		return -EINVAL;
 	}
 
 	retval = get_albums(curl_buf, session);
 	if (retval) {
 		fprintf(stderr, "error parsing albums\n");
+		curl_easy_cleanup(curl);
+		smug_curl_buffer_free(curl_buf);
 		return -EINVAL;
 	}
 
@@ -1097,8 +1116,10 @@ int smug_read_images(struct session *session, struct album *album)
 		return -ENOMEM;
 
 	curl = curl_init();
-	if (!curl)
+	if (!curl) {
+		smug_curl_buffer_free(curl_buf);
 		return -EINVAL;
+	}
 
 	sprintf(url, smugmug_image_list_url, session->session_id,
 		album->id, album->key);
@@ -1112,12 +1133,16 @@ int smug_read_images(struct session *session, struct album *album)
 	if (res) {
 		fprintf(stderr, "error(%d) trying to read list of albums\n",
 			res);
+		curl_easy_cleanup(curl);
+		smug_curl_buffer_free(curl_buf);
 		return -EINVAL;
 	}
 
 	retval = get_images(curl_buf, album);
 	if (retval) {
 		fprintf(stderr, "error parsing albums\n");
+		curl_easy_cleanup(curl);
+		smug_curl_buffer_free(curl_buf);
 		return -EINVAL;
 	}
 
@@ -1144,8 +1169,10 @@ int smug_download(struct session *session, struct filename *filename)
 
 	dbg("1\n");
 	progress = zalloc(sizeof(*progress));
-	if (!progress)
+	if (!progress) {
+		smug_curl_buffer_free(curl_buf);
 		return -ENOMEM;
+	}
 	progress->filename = filename->basename;
 	progress->upload = 0;
 	progress->position = 1;	/* FIXME */
@@ -1153,8 +1180,11 @@ int smug_download(struct session *session, struct filename *filename)
 
 	dbg("2\n");
 	curl = curl_init();
-	if (!curl)
+	if (!curl) {
+		free(progress);
+		smug_curl_buffer_free(curl_buf);
 		return -EINVAL;
+	}
 	dbg("3\n");
 
 	dbg("url = %s\n", filename->original_url);
