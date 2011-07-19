@@ -1,7 +1,7 @@
 Patches are gladly accepted for smugbatch code, please send them to
 greg@kroah.com, or you can use github to send a pull request.
 
-The code tree for smubatch is located at:
+The code tree for smugbatch is located at:
 	http://github.com/gregkh/smugbatch
 and can be cloned using git from:
 	git://github.com/gregkh/smugbatch.git
