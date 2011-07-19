@@ -715,8 +715,10 @@ int smug_login(struct session *session)
 		return -ENOMEM;
 
 	curl = curl_init();
-	if (!curl)
+	if (!curl) {
+		smug_curl_buffer_free(curl_buf);
 		return -EINVAL;
+	}
 
 	sprintf(url, smugmug_login_url, session->email,
 		session->password, api_key);
@@ -730,12 +732,17 @@ int smug_login(struct session *session)
 	res = curl_easy_perform(curl);
 	if (res) {
 		printf("error(%d) trying to login\n", res);
+		curl_easy_cleanup(curl);
+		smug_curl_buffer_free(curl_buf);
 		return -EINVAL;
 	}
 	session->su_cookie = get_su_cookie(curl);
 	char *rsp_stat = find_value(curl_buf->data, "rsp stat", NULL);
-	if (!rsp_stat)
+	if (!rsp_stat) {
+		curl_easy_cleanup(curl);
+		smug_curl_buffer_free(curl_buf);
 		return -EINVAL;
+	}
 	if (strcmp(rsp_stat, "fail") == 0) {
 		char *msg = find_value(curl_buf->data, "msg", NULL);
 		printf("error to login: %s\n", msg);
@@ -746,6 +753,8 @@ int smug_login(struct session *session)
 	retval = get_session_id(curl_buf, session);
 	if (retval) {
 		fprintf(stderr, "session_id was not found\n");
+		curl_easy_cleanup(curl);
+		smug_curl_buffer_free(curl_buf);
 		return -EINVAL;
 	}
 
