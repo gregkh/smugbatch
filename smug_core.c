@@ -161,8 +161,10 @@ char *get_string_from_stdin(void)
 	if (!string)
 		return NULL;
 
-	if (!fgets(string, 99, stdin))
+	if (!fgets(string, 99, stdin)) {
+		free(string);
 		return NULL;
+	}
 	temp = strchr(string, '\n');
 	*temp = '\0';
 	return string;
