@@ -128,6 +128,8 @@ extern int smug_get_albums(struct session *session);
 extern int smug_read_images(struct session *session, struct album *album);
 extern void smug_parse_configfile(struct session *session);
 extern int smug_download(struct session *session, struct filename *filename);
+extern char *smug_get_quicksettings_id(const char *qs_name,
+				       struct session *session);
 
 extern int debug;
 
