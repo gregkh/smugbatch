@@ -104,15 +104,15 @@ static char *get_su_cookie(CURL *curl)
 	}
 	nc = cookies;
 	while (nc) {
-		char domain[50], p1[50], p2[50], p3[50], name[50], value[50];
+		char domain[50], p1[50], p2[50], p3[50], name[50], value[100];
 		long unsigned int t;
-		int res;
+		int res2;
 
 		/* #HttpOnly_.smugmug.com\tTRUE\t/\tFALSE\t0\tSMSESS\t99363be4c3ceb3f153f875216539524a */
-		res =
-		    sscanf(nc->data, "%s\t%s\t%s\t%s\t%lu\t%s\t%s", domain, p1,
+		res2 =
+		    sscanf(nc->data, "%49s\t%49s\t%49s\t%49s\t%lu\t%49s\t%99s", domain, p1,
 			   p2, p3, &t, name, value);
-		if (res == 7 && strcmp(name, "_su") == 0) {
+		if (res2 == 7 && strcmp(name, "_su") == 0) {
 			cookie = valloc(strlen(value) + 1 + 4);
 			sprintf(cookie, "_su=%s", value);
 		}
