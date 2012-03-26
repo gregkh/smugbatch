@@ -1,3 +1,13 @@
+Summary of changes from v006 to v007
+============================================
+
+Andreas Jaeger (2):
+      smugbatch: Add missing prototype.
+      smugbatch: Avoid buffer overflow
+
+Jonathan Neuschäfer (1):
+      smug_login: fix a memory leak
+
 Summary of changes from v005 to v006
 ============================================
 

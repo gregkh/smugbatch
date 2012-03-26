@@ -1,3 +1,8 @@
+smugbatch 007
+=============
+buffer overflow fixes from Andreas Jaeger, fixing a crash
+memory leak fix from Jonathan Neuschäfer
+
 smugbatch 006
 =============
 1.2.2 api updates, thanks to Andreas Jaeger
